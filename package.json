@@ -1,0 +1,33 @@
+{
+  "name": "moyu-helper",
+  "version": "0.0.1",
+  "description": "摸鱼助手 - 摸鱼放置游戏自动化辅助脚本",
+  "type": "module",
+  "packageManager": "yarn@1.22.22",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "tf": "cd scripts && node transform-data.js",
+    "format": "prettier --write \"src/**/*.{ts,js,json}\"",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
+    "fix": "yarn lint:fix && yarn format",
+    "release": "node -e \"const {version} = require('./package.json'); require('child_process').execSync(`git tag -f v${version} && git push origin refs/tags/v${version} -f`, {stdio: 'inherit'})\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "20",
+    "@typescript-eslint/eslint-plugin": "^8.19.1",
+    "@typescript-eslint/parser": "^8.19.1",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "prettier": "^3.8.1",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.6",
+    "vite-plugin-monkey": "^4.0.6"
+  },
+  "dependencies": {
+    "pako": "^2.1.0"
+  }
+}
