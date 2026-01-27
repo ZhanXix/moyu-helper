@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import monkey from 'vite-plugin-monkey';
 import path from 'path';
+import pkg from './package.json';
 
 export default defineConfig({
   server: {
@@ -16,14 +17,14 @@ export default defineConfig({
       entry: 'src/main.ts',
       userscript: {
         name: '摸鱼助手 (Moyu Helper)',
-        namespace: 'https://github.com/NanGuaChui/moyu-idle',
-        version: '1.0.1',
+        namespace: 'https://github.com/NanGuaChui/moyu-helper',
+        version: pkg.version,
         description: '摸鱼放置游戏自动化辅助脚本 - 任务管理、智能制造、资源监控、技能树优化',
         author: 'NanGuaChui',
         match: ['https://www.moyu-idle.com/*', 'https://moyu-idle.com/*'],
         'run-at': 'document-end',
-        updateURL: 'https://github.com/NanGuaChui/moyu-idle/releases/latest/download/moyu-idle.user.js',
-        downloadURL: 'https://github.com/NanGuaChui/moyu-idle/releases/latest/download/moyu-idle.user.js',
+        updateURL: 'https://github.com/NanGuaChui/moyu-helper/releases/latest/download/moyu-helper.user.js',
+        downloadURL: 'https://github.com/NanGuaChui/moyu-helper/releases/latest/download/moyu-helper.user.js',
         grant: ['unsafeWindow', 'GM.getValue', 'GM.setValue', 'GM_addStyle'],
       },
       server: {
