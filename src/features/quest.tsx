@@ -21,27 +21,27 @@ interface Quest {
 
 interface QuestManagerConfig {
   excludedKeywords: string[];
-  requiredPrefix: string;
+  requiredPrefixes: string[];
 }
 
 class QuestManager {
   private config: QuestManagerConfig = {
     excludedKeywords: [],
-    requiredPrefix: '',
+    requiredPrefixes: [],
   };
 
   async init(): Promise<void> {
     const prefix = await GM.getValue(STORAGE_KEYS.QUEST_REQUIRED_PREFIX, DEFAULT_CONFIG.QUEST_REQUIRED_PREFIX);
     const keywords = await GM.getValue(STORAGE_KEYS.QUEST_EXCLUDED_KEYWORDS, DEFAULT_CONFIG.QUEST_EXCLUDED_KEYWORDS);
-    this.config.requiredPrefix = prefix;
+    this.config.requiredPrefixes = prefix.split(',').map((k) => k.trim()).filter(Boolean);
     this.config.excludedKeywords = keywords.split(',').map((k) => k.trim()).filter(Boolean);
   }
 
   private isValidQuest(quest: Quest): boolean {
-    return (
-      quest.title.startsWith(this.config.requiredPrefix) &&
-      !this.config.excludedKeywords.some((keyword) => quest.title.includes(keyword))
-    );
+    const matchesPrefix = this.config.requiredPrefixes.length === 0 || 
+      this.config.requiredPrefixes.some((prefix) => quest.title.includes(prefix));
+    const hasExcludedKeyword = this.config.excludedKeywords.some((keyword) => quest.title.includes(keyword));
+    return matchesPrefix && !hasExcludedKeyword;
   }
 
   private async fetchQuests(): Promise<Quest[]> {
@@ -121,27 +121,6 @@ class QuestManager {
 
   async refreshCards(): Promise<void> {
     await this.init();
-
-    // 首次运行提示
-    const isFirstRun = await GM.getValue(STORAGE_KEYS.QUEST_FIRST_RUN, true);
-    if (isFirstRun) {
-      return new Promise((resolve) => {
-        toast.confirm(
-          `<strong>任务自动刷新说明</strong><br><br>
-          • 自动提交已完成的任务<br>
-          • 刷新不符合条件的任务（前缀: ${this.config.requiredPrefix}）<br>
-          • 排除关键词: ${this.config.excludedKeywords.join('、') || '无'}<br>
-          • 自动去重并添加到执行队列<br><br>
-          <small>可在设置中修改筛选条件</small>`,
-          async () => {
-            await GM.setValue(STORAGE_KEYS.QUEST_FIRST_RUN, false);
-            await this.executeRefresh();
-            resolve();
-          }
-        );
-      });
-    }
-
     await this.executeRefresh();
   }
 

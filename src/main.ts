@@ -8,8 +8,10 @@
  */
 
 import type { PanelButton } from './types';
-import { FloatingPanel, settingsPanel, CraftPanel, SkillAllocationPanel } from './ui';
-import { logger, ws, dataCache } from './core';
+import { FloatingPanel, settingsPanel } from './ui';
+import { CraftPanel } from './features/craft';
+import { SkillAllocationPanel } from './features/skill-allocation';
+import { logger, ws, dataCache, toast } from './core';
 import {
   questManager,
   qualityToolbarManager,
@@ -69,32 +71,59 @@ function initCoreModules(): void {
  * 动态生成菜单按钮列表
  * 根据功能启用状态动态生成按钮配置
  */
-const getMenuButtons = (): PanelButton[] => {
+const getMenuButtons = async (): Promise<PanelButton[]> => {
   const buttons: PanelButton[] = [
     {
       text: '⚙️ 脚本设置',
       onClick: () => app.settings.show(),
       order: 999,
     },
-    {
+  ];
+
+  // 读取功能开关
+  const questManagerEnabled = await GM.getValue(
+    STORAGE_KEYS.QUEST_MANAGER_ENABLED,
+    DEFAULT_CONFIG.QUEST_MANAGER_ENABLED,
+  );
+  const craftPanelEnabled = await GM.getValue(STORAGE_KEYS.CRAFT_PANEL_ENABLED, DEFAULT_CONFIG.CRAFT_PANEL_ENABLED);
+  const skillAllocationEnabled = await GM.getValue(
+    STORAGE_KEYS.SKILL_ALLOCATION_ENABLED,
+    DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED,
+  );
+  const tavernExpertEnabled = await GM.getValue(
+    STORAGE_KEYS.TAVERN_EXPERT_ENABLED,
+    DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED,
+  );
+
+  // 技能加点
+  if (skillAllocationEnabled) {
+    buttons.push({
       text: '🌳 技能加点',
       onClick: () => app.skillAllocationPanel.show(),
       order: 4,
-    },
-    {
+    });
+  }
+
+  // 任务管理
+  if (questManagerEnabled) {
+    buttons.push({
       text: '📜 刷新任务',
       onClick: () => app.quest.refreshCards(),
       order: 2,
-    },
-    {
+    });
+  }
+
+  // 物品制造
+  if (craftPanelEnabled) {
+    buttons.push({
       text: '🔨 物品制造',
       onClick: () => app.craftPanel.show(),
       order: 1,
-    },
-  ];
+    });
+  }
 
-  // 动态添加强化专家按钮（仅在datacache中有tavern数据时显示）
-  if (dataCache.get('tavern')) {
+  // 动态添加强化专家按钮（仅在datacache中有tavern数据且启用时显示）
+  if (tavernExpertEnabled && dataCache.get('tavern')) {
     buttons.push({
       text: tavernExpertManager.getButtonText(),
       onClick: () => tavernExpertManager.toggle(),
@@ -114,27 +143,80 @@ const getMenuButtons = (): PanelButton[] => {
 /**
  * 初始化用户界面
  */
-function initUI(): void {
+async function initUI(): Promise<void> {
   try {
     new FloatingPanel({ subButtons: getMenuButtons });
     logger.success('悬浮面板初始化完成');
+    await checkAndNotifyNoFeatures();
   } catch (error) {
     logger.error('悬浮面板初始化失败', error);
   }
 }
 
 /**
+ * 检查是否启用了任何功能，如果没有则提示用户
+ */
+async function checkAndNotifyNoFeatures(): Promise<void> {
+  const craftPanelEnabled = await GM.getValue(STORAGE_KEYS.CRAFT_PANEL_ENABLED, DEFAULT_CONFIG.CRAFT_PANEL_ENABLED);
+  const skillAllocationEnabled = await GM.getValue(
+    STORAGE_KEYS.SKILL_ALLOCATION_ENABLED,
+    DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED,
+  );
+  const tavernExpertEnabled = await GM.getValue(
+    STORAGE_KEYS.TAVERN_EXPERT_ENABLED,
+    DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED,
+  );
+  const battleGuardEnabled = await GM.getValue(STORAGE_KEYS.BATTLE_GUARD_ENABLED, DEFAULT_CONFIG.BATTLE_GUARD_ENABLED);
+  const questManagerEnabled = await GM.getValue(
+    STORAGE_KEYS.QUEST_MANAGER_ENABLED,
+    DEFAULT_CONFIG.QUEST_MANAGER_ENABLED,
+  );
+  const monitorEnabled = await GM.getValue(
+    STORAGE_KEYS.RESOURCE_MONITOR_ENABLED,
+    DEFAULT_CONFIG.RESOURCE_MONITOR_ENABLED,
+  );
+  const autoBerryEnabled = await GM.getValue(
+    STORAGE_KEYS.AUTO_USE_BERRY_ENABLED,
+    DEFAULT_CONFIG.AUTO_USE_BERRY_ENABLED,
+  );
+
+  const hasAnyFeatureEnabled =
+    craftPanelEnabled ||
+    skillAllocationEnabled ||
+    tavernExpertEnabled ||
+    battleGuardEnabled ||
+    questManagerEnabled ||
+    monitorEnabled ||
+    autoBerryEnabled;
+
+  if (!hasAnyFeatureEnabled) {
+    toast.info('💡 当前未启用任何功能，请点击右下角浮动按钮进行配置', 3000);
+  }
+}
+
+/**
  * 初始化功能模块
  */
-function initFeatureModules(): void {
+async function initFeatureModules(): Promise<void> {
   // 挂载资源工具函数到控制台
   mountResourceUtils();
 
+  // 读取功能开关配置
+  const battleGuardEnabled = await GM.getValue(STORAGE_KEYS.BATTLE_GUARD_ENABLED, DEFAULT_CONFIG.BATTLE_GUARD_ENABLED);
+  const qualityToolbarEnabled = await GM.getValue(
+    STORAGE_KEYS.QUALITY_TOOLBAR_ENABLED,
+    DEFAULT_CONFIG.QUALITY_TOOLBAR_ENABLED,
+  );
+
   // 初始化工具栏管理器
-  app.toolbar.init();
+  if (qualityToolbarEnabled) {
+    app.toolbar.init();
+  }
 
   // 初始化战斗防护
-  battleGuard.init();
+  if (battleGuardEnabled) {
+    battleGuard.init();
+  }
 
   // 初始化饱食度管理器
   app.satiety.init();
@@ -161,7 +243,7 @@ async function main(): Promise<void> {
   analytics.init();
   await initLogger();
   initCoreModules();
-  initFeatureModules();
+  await initFeatureModules();
 
   logger.success('核心功能已启动');
 }
@@ -196,8 +278,8 @@ function waitForElement(selector: string): Promise<Element> {
 void main();
 
 // 等待 .user-dropdown 元素出现后初始化 UI
-void waitForElement('.user-dropdown').then(() => {
-  initUI();
-  analytics.track('脚本', '启动', '成功');
+void waitForElement('.user-dropdown').then(async () => {
+  await initUI();
+  analytics.track('脚本', '启动', `v${GM.info.script.version}`);
   logger.success('UI 初始化完成');
 });

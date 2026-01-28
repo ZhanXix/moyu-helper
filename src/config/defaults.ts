@@ -42,6 +42,12 @@ export interface AppConfig {
   AUTO_USE_BERRY_FOOD_TYPE: FoodType;
   QUEST_REQUIRED_PREFIX: string;
   QUEST_EXCLUDED_KEYWORDS: string;
+  QUEST_MANAGER_ENABLED: boolean;
+  BATTLE_GUARD_ENABLED: boolean;
+  QUALITY_TOOLBAR_ENABLED: boolean;
+  TAVERN_EXPERT_ENABLED: boolean;
+  CRAFT_PANEL_ENABLED: boolean;
+  SKILL_ALLOCATION_ENABLED: boolean;
 }
 
 /**
@@ -54,7 +60,7 @@ export const DEFAULT_CONFIG: Readonly<AppConfig> = {
   BATCH_DELAY: 5000, // 批次间隔（毫秒）
 
   // 资源监控配置
-  RESOURCE_MONITOR_ENABLED: true, // 默认启用资源监控
+  RESOURCE_MONITOR_ENABLED: false, // 默认关闭资源监控
   AUTO_BUY_BASE_RESOURCES: false, // 默认关闭自动购买基础资源
 
   // 日志级别配置
@@ -62,13 +68,21 @@ export const DEFAULT_CONFIG: Readonly<AppConfig> = {
 
   // 自动使用浆果配置
   AUTO_USE_BERRY_ENABLED: false, // 默认关闭自动使用浆果
-  AUTO_USE_BERRY_THRESHOLD: 2000000, // 饱食度低于此值时自动使用浆果
-  AUTO_USE_BERRY_TARGET: 2200000, // 使用浆果后的目标饱食度
+  AUTO_USE_BERRY_THRESHOLD: 500000, // 饱食度低于此值时自动使用浆果
+  AUTO_USE_BERRY_TARGET: 600000, // 使用浆果后的目标饱食度
   AUTO_USE_BERRY_FOOD_TYPE: 'berry', // 使用的食物类型
 
   // 任务管理器配置
   QUEST_REQUIRED_PREFIX: '采集', // 任务标题必须包含的前缀
-  QUEST_EXCLUDED_KEYWORDS: '云絮,彩虹,种植', // 排除的关键字（逗号分隔）
+  QUEST_EXCLUDED_KEYWORDS: '云絮,彩虹,种植,蛋挞', // 排除的关键字（逗号分隔）
+  QUEST_MANAGER_ENABLED: false, // 默认关闭任务管理器
+
+  // 功能开关
+  BATTLE_GUARD_ENABLED: false, // 默认关闭战斗防护
+  QUALITY_TOOLBAR_ENABLED: false, // 默认关闭缩小生活质量图标
+  TAVERN_EXPERT_ENABLED: false, // 默认关闭酒馆专家
+  CRAFT_PANEL_ENABLED: false, // 默认关闭物品制造
+  SKILL_ALLOCATION_ENABLED: false, // 默认关闭技能加点
 };
 
 /**
@@ -89,7 +103,12 @@ export const STORAGE_KEYS = {
   AUTO_USE_BERRY_FOOD_TYPE: 'auto_use_berry_food_type',
   QUEST_REQUIRED_PREFIX: 'quest_required_prefix',
   QUEST_EXCLUDED_KEYWORDS: 'quest_excluded_keywords',
-  QUEST_FIRST_RUN: 'quest_first_run',
+  QUEST_MANAGER_ENABLED: 'quest_manager_enabled',
+  BATTLE_GUARD_ENABLED: 'battle_guard_enabled',
+  QUALITY_TOOLBAR_ENABLED: 'quality_toolbar_enabled',
+  TAVERN_EXPERT_ENABLED: 'tavern_expert_enabled',
+  CRAFT_PANEL_ENABLED: 'craft_panel_enabled',
+  SKILL_ALLOCATION_ENABLED: 'skill_allocation_enabled',
 } as const;
 
 /**

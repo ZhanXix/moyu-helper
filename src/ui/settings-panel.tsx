@@ -10,7 +10,7 @@
 
 import { render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
-import type { resourceMonitor } from '@/features';
+import type { resourceMonitor } from '@/features/resource-monitor';
 import type { satietyManager } from '@/features/satiety-manager';
 import { DEFAULT_CONFIG, STORAGE_KEYS, type FoodType } from '@/config/defaults';
 import { logger, toast } from '@/core';
@@ -48,6 +48,12 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
   const [berryFoodType, setBerryFoodType] = useState<FoodType>(DEFAULT_CONFIG.AUTO_USE_BERRY_FOOD_TYPE);
   const [questPrefix, setQuestPrefix] = useState(DEFAULT_CONFIG.QUEST_REQUIRED_PREFIX);
   const [questKeywords, setQuestKeywords] = useState(DEFAULT_CONFIG.QUEST_EXCLUDED_KEYWORDS);
+  const [questManagerEnabled, setQuestManagerEnabled] = useState(DEFAULT_CONFIG.QUEST_MANAGER_ENABLED);
+  const [battleGuardEnabled, setBattleGuardEnabled] = useState(DEFAULT_CONFIG.BATTLE_GUARD_ENABLED);
+  const [qualityToolbarEnabled, setQualityToolbarEnabled] = useState(DEFAULT_CONFIG.QUALITY_TOOLBAR_ENABLED);
+  const [tavernExpertEnabled, setTavernExpertEnabled] = useState(DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED);
+  const [craftPanelEnabled, setCraftPanelEnabled] = useState(DEFAULT_CONFIG.CRAFT_PANEL_ENABLED);
+  const [skillAllocationEnabled, setSkillAllocationEnabled] = useState(DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED);
 
   // 加载初始数据
   useEffect(() => {
@@ -76,6 +82,30 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         STORAGE_KEYS.AUTO_USE_BERRY_FOOD_TYPE,
         DEFAULT_CONFIG.AUTO_USE_BERRY_FOOD_TYPE,
       );
+      const loadedQuestManagerEnabled = await GM.getValue(
+        STORAGE_KEYS.QUEST_MANAGER_ENABLED,
+        DEFAULT_CONFIG.QUEST_MANAGER_ENABLED,
+      );
+      const loadedBattleGuardEnabled = await GM.getValue(
+        STORAGE_KEYS.BATTLE_GUARD_ENABLED,
+        DEFAULT_CONFIG.BATTLE_GUARD_ENABLED,
+      );
+      const loadedQualityToolbarEnabled = await GM.getValue(
+        STORAGE_KEYS.QUALITY_TOOLBAR_ENABLED,
+        DEFAULT_CONFIG.QUALITY_TOOLBAR_ENABLED,
+      );
+      const loadedTavernExpertEnabled = await GM.getValue(
+        STORAGE_KEYS.TAVERN_EXPERT_ENABLED,
+        DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED,
+      );
+      const loadedCraftPanelEnabled = await GM.getValue(
+        STORAGE_KEYS.CRAFT_PANEL_ENABLED,
+        DEFAULT_CONFIG.CRAFT_PANEL_ENABLED,
+      );
+      const loadedSkillAllocationEnabled = await GM.getValue(
+        STORAGE_KEYS.SKILL_ALLOCATION_ENABLED,
+        DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED,
+      );
 
       setBatchSize(loadedBatchSize);
       setTaskInterval(loadedTaskInterval);
@@ -86,6 +116,12 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
       setQuestPrefix(loadedQuestPrefix);
       setQuestKeywords(loadedQuestKeywords);
       setBerryFoodType(loadedBerryFoodType);
+      setQuestManagerEnabled(loadedQuestManagerEnabled);
+      setBattleGuardEnabled(loadedBattleGuardEnabled);
+      setQualityToolbarEnabled(loadedQualityToolbarEnabled);
+      setTavernExpertEnabled(loadedTavernExpertEnabled);
+      setCraftPanelEnabled(loadedCraftPanelEnabled);
+      setSkillAllocationEnabled(loadedSkillAllocationEnabled);
 
       if (resourceMonitor) {
         const enabled = resourceMonitor.isEnabled();
@@ -143,6 +179,12 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
     await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_FOOD_TYPE, berryFoodType);
     await GM.setValue(STORAGE_KEYS.QUEST_REQUIRED_PREFIX, questPrefix);
     await GM.setValue(STORAGE_KEYS.QUEST_EXCLUDED_KEYWORDS, questKeywords);
+    await GM.setValue(STORAGE_KEYS.QUEST_MANAGER_ENABLED, questManagerEnabled);
+    await GM.setValue(STORAGE_KEYS.BATTLE_GUARD_ENABLED, battleGuardEnabled);
+    await GM.setValue(STORAGE_KEYS.QUALITY_TOOLBAR_ENABLED, qualityToolbarEnabled);
+    await GM.setValue(STORAGE_KEYS.TAVERN_EXPERT_ENABLED, tavernExpertEnabled);
+    await GM.setValue(STORAGE_KEYS.CRAFT_PANEL_ENABLED, craftPanelEnabled);
+    await GM.setValue(STORAGE_KEYS.SKILL_ALLOCATION_ENABLED, skillAllocationEnabled);
 
     taskQueue.setBatchSize(batchSize);
     taskQueue.setInterval(taskInterval);
@@ -195,6 +237,12 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
     await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_FOOD_TYPE, DEFAULT_CONFIG.AUTO_USE_BERRY_FOOD_TYPE);
     await GM.setValue(STORAGE_KEYS.QUEST_REQUIRED_PREFIX, DEFAULT_CONFIG.QUEST_REQUIRED_PREFIX);
     await GM.setValue(STORAGE_KEYS.QUEST_EXCLUDED_KEYWORDS, DEFAULT_CONFIG.QUEST_EXCLUDED_KEYWORDS);
+    await GM.setValue(STORAGE_KEYS.QUEST_MANAGER_ENABLED, DEFAULT_CONFIG.QUEST_MANAGER_ENABLED);
+    await GM.setValue(STORAGE_KEYS.BATTLE_GUARD_ENABLED, DEFAULT_CONFIG.BATTLE_GUARD_ENABLED);
+    await GM.setValue(STORAGE_KEYS.QUALITY_TOOLBAR_ENABLED, DEFAULT_CONFIG.QUALITY_TOOLBAR_ENABLED);
+    await GM.setValue(STORAGE_KEYS.TAVERN_EXPERT_ENABLED, DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED);
+    await GM.setValue(STORAGE_KEYS.CRAFT_PANEL_ENABLED, DEFAULT_CONFIG.CRAFT_PANEL_ENABLED);
+    await GM.setValue(STORAGE_KEYS.SKILL_ALLOCATION_ENABLED, DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED);
 
     logger.setMinLevel(DEFAULT_CONFIG.LOG_LEVEL);
     taskQueue.setBatchSize(DEFAULT_CONFIG.QUEST_BATCH_SIZE);
@@ -219,6 +267,46 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
 
   return (
     <>
+      <Card title="🎯 功能开关">
+        <Row>
+          <Checkbox checked={craftPanelEnabled} onChange={setCraftPanelEnabled} label="物品制造" />
+        </Row>
+        <Row>
+          <Checkbox checked={skillAllocationEnabled} onChange={setSkillAllocationEnabled} label="技能加点" />
+        </Row>
+        <Row>
+          <Checkbox checked={tavernExpertEnabled} onChange={setTavernExpertEnabled} label="酒馆专家" />
+        </Row>
+        <Row>
+          <Checkbox checked={battleGuardEnabled} onChange={setBattleGuardEnabled} label="战斗防护" />
+        </Row>
+        <Row>
+          <Checkbox checked={qualityToolbarEnabled} onChange={setQualityToolbarEnabled} label="缩小生活质量图标" />
+        </Row>
+      </Card>
+
+      <Card title="📜 任务管理配置">
+        <Row>
+          <Checkbox checked={questManagerEnabled} onChange={setQuestManagerEnabled} label="启用任务管理器" />
+        </Row>
+        <Row label="匹配关键字">
+          <Input
+            type="text"
+            value={questPrefix}
+            onChange={setQuestPrefix}
+            placeholder="逗号分隔，例如：采集,制作,探索"
+          />
+        </Row>
+        <Row label="排除关键字">
+          <Input
+            type="text"
+            value={questKeywords}
+            onChange={setQuestKeywords}
+            placeholder="逗号分隔，例如：云絮,彩虹,种植"
+          />
+        </Row>
+      </Card>
+
       <Card title="🎯 任务队列配置">
         <Row label="批次大小">
           <Input
@@ -252,26 +340,7 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         </Row>
       </Card>
 
-      <Card title="📜 任务管理配置">
-        <Row label="匹配关键字">
-          <Input
-            type="text"
-            value={questPrefix}
-            onChange={setQuestPrefix}
-            placeholder="例如：采集"
-          />
-        </Row>
-        <Row label="排除关键字">
-          <Input
-            type="text"
-            value={questKeywords}
-            onChange={setQuestKeywords}
-            placeholder="逗号分隔，例如：云絮,彩虹,种植"
-          />
-        </Row>
-      </Card>
-
-      <Card title="🎒 饱食度管理配置">
+      <Card title="🍓 饱食度管理配置">
         <Row>
           <Checkbox checked={autoBerryEnabled} onChange={setAutoBerryEnabled} label="启用饱食度管理" />
         </Row>
@@ -302,23 +371,6 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
             onChange={(v) => setBerryTarget(parseInt(v) || 0)}
             min={0}
             step={100000}
-          />
-        </Row>
-      </Card>
-
-      <Card title="🔍 调试配置">
-        <Row label="日志级别">
-          <Select
-            value={logLevel}
-            onChange={(v) => setLogLevel(v as typeof logLevel)}
-            options={[
-              { value: 'none', label: '不显示日志' },
-              { value: 'error', label: '错误' },
-              { value: 'warn', label: '警告' },
-              { value: 'success', label: '成功' },
-              { value: 'info', label: '信息' },
-              { value: 'debug', label: '调试' },
-            ]}
           />
         </Row>
       </Card>
@@ -379,10 +431,44 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         ))}
       </Card>
 
-      <Button onClick={handleSave}>保存设置</Button>
-      <Button variant="danger" onClick={handleClearAll} style={{ marginTop: '8px' }}>
-        清空所有设置
-      </Button>
+      <Card title="🔧 调试配置">
+        <Row label="日志级别">
+          <Select
+            value={logLevel}
+            onChange={(v) => setLogLevel(v as typeof logLevel)}
+            options={[
+              { value: 'none', label: '不显示日志' },
+              { value: 'error', label: '错误' },
+              { value: 'warn', label: '警告' },
+              { value: 'success', label: '成功' },
+              { value: 'info', label: '信息' },
+              { value: 'debug', label: '调试' },
+            ]}
+          />
+        </Row>
+      </Card>
+
+      <div
+        style={{
+          position: 'sticky',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          padding: '12px 0',
+          background: '#ffffff',
+          borderTop: '1px solid rgba(0, 0, 0, 0.06)',
+          marginTop: '20px',
+          display: 'flex',
+          gap: '8px',
+        }}
+      >
+        <Button variant="danger" onClick={handleClearAll} style={{ flex: 1 }}>
+          清空所有设置
+        </Button>
+        <Button onClick={handleSave} style={{ flex: 1 }}>
+          保存设置
+        </Button>
+      </div>
     </>
   );
 }
@@ -415,8 +501,12 @@ class SettingsPanel {
     }
 
     render(
-      <Modal isOpen={true} onClose={() => this.hide()} title="⚙️ 设置">
-        <SettingsPanelContent onClose={() => this.hide()} resourceMonitor={this.resourceMonitor} satietyManager={this.satietyManager} />
+      <Modal isOpen={true} onClose={() => this.hide()} title="⚙️ 设置" contentStyle={{ paddingBottom: 0 }}>
+        <SettingsPanelContent
+          onClose={() => this.hide()}
+          resourceMonitor={this.resourceMonitor}
+          satietyManager={this.satietyManager}
+        />
       </Modal>,
       this.container,
     );

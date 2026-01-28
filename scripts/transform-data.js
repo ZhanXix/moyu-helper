@@ -8,22 +8,10 @@ const __dirname = path.dirname(__filename);
 // 常量配置
 const FILTERED_RESOURCES = ['berry', 'fish', 'wood', 'stone', 'bamboo', 'coal', '__satiety'];
 const EXCLUDED_CATEGORIES = ['基础资源', '其他', '种子'];
-const REQUIRED_ACTIONS = [
-  'exploreNewArea',
-  'sericulture',
-  'pearlCultivation',
-  'farmingSheep',
-  'farmingChicken',
-  'farmingCow',
-  'miningFishscaleMineral',
-  'charcoalMaking',
-  'sewCashmere',
-  'sewSilkFabric',
-  'pickRainbowShard',
-  'cutBamboo',
-  'reading',
-  'swim',
-];
+const REQUIRED_ACTIONS = ['miningFishscaleMineral', 'cutBamboo', 'pearlCultivation', 'refinePureEssence'];
+
+// 需要收藏的 actions（会显示在"收藏"分类中）
+const COLLECTION_ACTIONS = ['reading', 'swim', 'charcoalMaking', 'pickRainbowShard'];
 
 // 读取并解析源数据
 function loadRawData() {
@@ -202,12 +190,10 @@ function buildTreeStructure(actions) {
 }
 
 // 生成最终数据结构
-function generateFinalData(rawData, normalActionIds, requiredActionIds) {
+function generateFinalData(rawData, normalActionIds, collectionActionIds) {
   const normalActions = Array.from(normalActionIds)
     .filter((id) => rawData[id])
     .map((id) => transformAction(id, rawData[id]));
-
-  const requiredActions = requiredActionIds.filter((id) => rawData[id]).map((id) => transformAction(id, rawData[id]));
 
   const grouped = groupByCategory(normalActions);
 
@@ -220,11 +206,14 @@ function generateFinalData(rawData, normalActionIds, requiredActionIds) {
     }));
 
   // 添加收藏分类到最前面
-  if (requiredActions.length > 0) {
+  if (collectionActionIds.length > 0) {
+    const collectionActions = collectionActionIds
+      .filter((id) => rawData[id])
+      .map((id) => transformAction(id, rawData[id]));
     categories.unshift({
-      value: 'collection_required_actions',
+      value: 'collection',
       label: '收藏',
-      items: buildTreeStructure(requiredActions),
+      items: buildTreeStructure(collectionActions),
     });
   }
 
@@ -233,24 +222,13 @@ function generateFinalData(rawData, normalActionIds, requiredActionIds) {
 
 // 生成并写入文件
 function writeOutputFile(data, targetItemCount) {
-  const tsContent = `// 此文件由 scripts/transform-data.js 自动生成，请勿手动修改
-
-import type { CraftItemCategory } from '@/types';
-
-/**
- * 物品制造依赖配置（树形结构）
- * 自动从游戏数据生成
- */
-export const DEFAULT_CRAFT_ITEMS: CraftItemCategory[] = ${JSON.stringify(data, null, 2)};
-`;
-
   const outputDir = path.join(__dirname, '../src/config');
   if (!fs.existsSync(outputDir)) {
     fs.mkdirSync(outputDir, { recursive: true });
   }
 
-  const outputFile = path.join(outputDir, 'craft-items.ts');
-  fs.writeFileSync(outputFile, tsContent, 'utf-8');
+  const outputFile = path.join(outputDir, 'craft-items.json');
+  fs.writeFileSync(outputFile, JSON.stringify(data, null, 2), 'utf-8');
 
   const totalItems = data.reduce((sum, group) => sum + group.items.length, 0);
   console.log(`转换完成！共处理 ${totalItems} 条数据，分为 ${data.length} 个分类`);
@@ -266,10 +244,12 @@ function main() {
   const optimalActions = findOptimalActions(rawData, targetItemIds);
   const allActions = collectDependentActions(rawData, optimalActions);
 
-  // 分离普通 action 和必须保留的 action
-  const normalActionIds = new Set([...allActions].filter((id) => !REQUIRED_ACTIONS.includes(id)));
+  // 添加 REQUIRED_ACTIONS 到结果集，排除 farming
+  REQUIRED_ACTIONS.forEach((id) => {
+    if (id !== 'farming') allActions.add(id);
+  });
 
-  const finalData = generateFinalData(rawData, normalActionIds, REQUIRED_ACTIONS);
+  const finalData = generateFinalData(rawData, allActions, COLLECTION_ACTIONS);
   writeOutputFile(finalData, targetItemIds.size);
 }
 

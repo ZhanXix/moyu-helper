@@ -13,6 +13,7 @@ interface ModalProps {
   maxWidth?: string;
   maxHeight?: string;
   className?: string;
+  contentStyle?: JSX.CSSProperties;
 }
 
 const OVERLAY_STYLE: JSX.CSSProperties = {
@@ -74,6 +75,7 @@ const CLOSE_BTN_STYLE: JSX.CSSProperties = {
 
 const CONTENT_STYLE: JSX.CSSProperties = {
   padding: '20px',
+  paddingBottom: '20px',
   overflowY: 'auto',
   flex: 1,
 };
@@ -87,6 +89,7 @@ export function Modal({
   maxWidth = '420px',
   maxHeight = '80vh',
   className = '',
+  contentStyle,
 }: ModalProps) {
   useEffect(() => {
     if (isOpen) {
@@ -145,7 +148,7 @@ export function Modal({
             </button>
           </div>
         )}
-        <div style={CONTENT_STYLE}>{children}</div>
+        <div style={{ ...CONTENT_STYLE, ...contentStyle }}>{children}</div>
       </div>
     </>
   );

@@ -4,6 +4,4 @@
  */
 export * from './floating-panel';
 export * from './settings-panel';
-export * from './craft-panel';
-export * from './skill-allocation-panel';
 export * from './components';
