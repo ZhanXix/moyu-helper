@@ -12,7 +12,7 @@ import { render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import type { resourceMonitor } from '@/features';
 import type { satietyManager } from '@/features/satiety-manager';
-import { DEFAULT_CONFIG, STORAGE_KEYS, type FoodType } from '@/config/defaults';
+import { DEFAULT_CONFIG, STORAGE_KEYS, type FoodType, QUEST_TASK_TYPES } from '@/config/defaults';
 import { logger, toast } from '@/core';
 import { taskQueue } from '@/utils/task-queue';
 import { Modal, Card, Row, Input, Checkbox, Button, Select, Section } from './components';
@@ -46,8 +46,9 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
   const [berryThreshold, setBerryThreshold] = useState(DEFAULT_CONFIG.AUTO_USE_BERRY_THRESHOLD);
   const [berryTarget, setBerryTarget] = useState(DEFAULT_CONFIG.AUTO_USE_BERRY_TARGET);
   const [berryFoodType, setBerryFoodType] = useState<FoodType>(DEFAULT_CONFIG.AUTO_USE_BERRY_FOOD_TYPE);
-  const [questPrefix, setQuestPrefix] = useState(DEFAULT_CONFIG.QUEST_REQUIRED_PREFIX);
-  const [questKeywords, setQuestKeywords] = useState(DEFAULT_CONFIG.QUEST_EXCLUDED_KEYWORDS);
+  const [goldLimit, setGoldLimit] = useState(DEFAULT_CONFIG.QUEST_GOLD_LIMIT);
+  const [selectedTasks, setSelectedTasks] = useState<Record<string, Record<string, boolean>>>(DEFAULT_CONFIG.QUEST_DEFAULT_SELECTED_TASKS);
+  const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
 
   // 加载初始数据
   useEffect(() => {
@@ -64,18 +65,12 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         STORAGE_KEYS.AUTO_USE_BERRY_TARGET,
         DEFAULT_CONFIG.AUTO_USE_BERRY_TARGET,
       );
-      const loadedQuestPrefix = await GM.getValue(
-        STORAGE_KEYS.QUEST_REQUIRED_PREFIX,
-        DEFAULT_CONFIG.QUEST_REQUIRED_PREFIX,
-      );
-      const loadedQuestKeywords = await GM.getValue(
-        STORAGE_KEYS.QUEST_EXCLUDED_KEYWORDS,
-        DEFAULT_CONFIG.QUEST_EXCLUDED_KEYWORDS,
-      );
       const loadedBerryFoodType = await GM.getValue(
         STORAGE_KEYS.AUTO_USE_BERRY_FOOD_TYPE,
         DEFAULT_CONFIG.AUTO_USE_BERRY_FOOD_TYPE,
       );
+      const loadedGoldLimit = await GM.getValue(STORAGE_KEYS.QUEST_GOLD_LIMIT, DEFAULT_CONFIG.QUEST_GOLD_LIMIT);
+      const loadedSelectedTasks = await GM.getValue(STORAGE_KEYS.QUEST_SELECTED_TASKS, DEFAULT_CONFIG.QUEST_DEFAULT_SELECTED_TASKS);
 
       setBatchSize(loadedBatchSize);
       setTaskInterval(loadedTaskInterval);
@@ -83,9 +78,9 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
       setLogLevel(loadedLogLevel);
       setBerryThreshold(loadedBerryThreshold);
       setBerryTarget(loadedBerryTarget);
-      setQuestPrefix(loadedQuestPrefix);
-      setQuestKeywords(loadedQuestKeywords);
       setBerryFoodType(loadedBerryFoodType);
+      setGoldLimit(loadedGoldLimit);
+      setSelectedTasks(loadedSelectedTasks);
 
       if (resourceMonitor) {
         const enabled = resourceMonitor.isEnabled();
@@ -141,8 +136,8 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
     await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_THRESHOLD, berryThreshold);
     await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_TARGET, berryTarget);
     await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_FOOD_TYPE, berryFoodType);
-    await GM.setValue(STORAGE_KEYS.QUEST_REQUIRED_PREFIX, questPrefix);
-    await GM.setValue(STORAGE_KEYS.QUEST_EXCLUDED_KEYWORDS, questKeywords);
+    await GM.setValue(STORAGE_KEYS.QUEST_GOLD_LIMIT, goldLimit);
+    await GM.setValue(STORAGE_KEYS.QUEST_SELECTED_TASKS, selectedTasks);
 
     taskQueue.setBatchSize(batchSize);
     taskQueue.setInterval(taskInterval);
@@ -193,8 +188,8 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
     await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_THRESHOLD, DEFAULT_CONFIG.AUTO_USE_BERRY_THRESHOLD);
     await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_TARGET, DEFAULT_CONFIG.AUTO_USE_BERRY_TARGET);
     await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_FOOD_TYPE, DEFAULT_CONFIG.AUTO_USE_BERRY_FOOD_TYPE);
-    await GM.setValue(STORAGE_KEYS.QUEST_REQUIRED_PREFIX, DEFAULT_CONFIG.QUEST_REQUIRED_PREFIX);
-    await GM.setValue(STORAGE_KEYS.QUEST_EXCLUDED_KEYWORDS, DEFAULT_CONFIG.QUEST_EXCLUDED_KEYWORDS);
+    await GM.setValue(STORAGE_KEYS.QUEST_GOLD_LIMIT, DEFAULT_CONFIG.QUEST_GOLD_LIMIT);
+    await GM.setValue(STORAGE_KEYS.QUEST_SELECTED_TASKS, DEFAULT_CONFIG.QUEST_DEFAULT_SELECTED_TASKS);
 
     logger.setMinLevel(DEFAULT_CONFIG.LOG_LEVEL);
     taskQueue.setBatchSize(DEFAULT_CONFIG.QUEST_BATCH_SIZE);
@@ -253,22 +248,73 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
       </Card>
 
       <Card title="📜 任务管理配置">
-        <Row label="匹配关键字">
+        <Row label="金币限制">
           <Input
-            type="text"
-            value={questPrefix}
-            onChange={setQuestPrefix}
-            placeholder="例如：采集"
+            type="number"
+            value={goldLimit}
+            onChange={(v) => setGoldLimit(Number(v) || DEFAULT_CONFIG.QUEST_GOLD_LIMIT)}
+            min={0}
+            step={250}
           />
         </Row>
-        <Row label="排除关键字">
-          <Input
-            type="text"
-            value={questKeywords}
-            onChange={setQuestKeywords}
-            placeholder="逗号分隔，例如：云絮,彩虹,种植"
-          />
-        </Row>
+        
+        <div style={{ marginTop: '15px' }}>
+          <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px' }}>选择要保留的任务类型:</div>
+          {Object.entries(QUEST_TASK_TYPES).map(([category, tasks]) => (
+            <div key={category} style={{ marginBottom: '10px', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '8px 12px',
+                  background: '#f5f5f5',
+                  cursor: 'pointer',
+                  gap: '8px'
+                }}
+                onClick={() => setExpandedCategories(prev => ({
+                  ...prev,
+                  [category]: !prev[category]
+                }))}
+              >
+                <Checkbox
+                  checked={tasks.every(t => selectedTasks[category]?.[t])}
+                  onChange={(checked) => {
+                    setSelectedTasks(prev => ({
+                      ...prev,
+                      [category]: tasks.reduce((acc, t) => ({ ...acc, [t]: checked }), {})
+                    }));
+                  }}
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ margin: 0 }}
+                />
+                <span style={{ flex: 1 }}>{category}</span>
+                <span style={{ fontSize: '12px', color: '#666' }}>{expandedCategories[category] ? '▼' : '▶'}</span>
+              </div>
+              
+              {expandedCategories[category] && (
+                <div style={{ padding: '8px 12px 8px 32px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {tasks.map(task => (
+                    <Checkbox
+                      key={task}
+                      checked={selectedTasks[category]?.[task] || false}
+                      onChange={(checked) => {
+                        setSelectedTasks(prev => ({
+                          ...prev,
+                          [category]: {
+                            ...prev[category],
+                            [task]: checked
+                          }
+                        }));
+                      }}
+                      label={task}
+                      style={{ margin: 0 }}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </Card>
 
       <Card title="🎒 饱食度管理配置">
