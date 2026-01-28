@@ -284,58 +284,6 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         <Row>
           <Checkbox checked={questManagerEnabled} onChange={setQuestManagerEnabled} label="启用任务管理器" />
         </Row>
-        <Row label="匹配关键字">
-          <Input
-            type="text"
-            value={questPrefix}
-            onChange={setQuestPrefix}
-            placeholder="逗号分隔，例如：采集,制作,探索"
-          />
-        </Row>
-        <Row label="排除关键字">
-          <Input
-            type="text"
-            value={questKeywords}
-            onChange={setQuestKeywords}
-            placeholder="逗号分隔，例如：云絮,彩虹,种植"
-          />
-        </Row>
-      </Card>
-
-      <Card title="🎯 任务队列配置">
-        <Row label="批次大小">
-          <Input
-            type="number"
-            value={batchSize}
-            onChange={(v) => setBatchSize(parseInt(v) || 1)}
-            min={1}
-            max={100}
-            step={1}
-          />
-        </Row>
-        <Row label="任务间隔(ms)">
-          <Input
-            type="number"
-            value={taskInterval}
-            onChange={(v) => setTaskInterval(parseInt(v) || 100)}
-            min={100}
-            max={10000}
-            step={100}
-          />
-        </Row>
-        <Row label="批次间隔(ms)">
-          <Input
-            type="number"
-            value={batchDelay}
-            onChange={(v) => setBatchDelay(parseInt(v) || 1000)}
-            min={1000}
-            max={60000}
-            step={1000}
-          />
-        </Row>
-      </Card>
-
-      <Card title="📜 任务管理配置">
         <Row label="金币限制">
           <Input
             type="number"
@@ -403,6 +351,39 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
             </div>
           ))}
         </div>
+      </Card>
+
+      <Card title="🎯 任务队列配置">
+        <Row label="批次大小">
+          <Input
+            type="number"
+            value={batchSize}
+            onChange={(v) => setBatchSize(parseInt(v) || 1)}
+            min={1}
+            max={100}
+            step={1}
+          />
+        </Row>
+        <Row label="任务间隔(ms)">
+          <Input
+            type="number"
+            value={taskInterval}
+            onChange={(v) => setTaskInterval(parseInt(v) || 100)}
+            min={100}
+            max={10000}
+            step={100}
+          />
+        </Row>
+        <Row label="批次间隔(ms)">
+          <Input
+            type="number"
+            value={batchDelay}
+            onChange={(v) => setBatchDelay(parseInt(v) || 1000)}
+            min={1000}
+            max={60000}
+            step={1000}
+          />
+        </Row>
       </Card>
 
       <Card title="🎒 饱食度管理配置">
