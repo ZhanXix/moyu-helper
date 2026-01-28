@@ -4,6 +4,8 @@
  */
 
 import { toast, ws, logger } from '@/core';
+import { DEFAULT_CONFIG, STORAGE_KEYS } from '@/config/defaults';
+import { analytics } from '@/utils';
 
 interface Quest {
   uuid: string;
@@ -23,10 +25,17 @@ interface QuestManagerConfig {
 }
 
 class QuestManager {
-  private readonly config: QuestManagerConfig = {
-    excludedKeywords: ['云絮', '彩虹', '种植'],
-    requiredPrefix: '采集',
+  private config: QuestManagerConfig = {
+    excludedKeywords: [],
+    requiredPrefix: '',
   };
+
+  async init(): Promise<void> {
+    const prefix = await GM.getValue(STORAGE_KEYS.QUEST_REQUIRED_PREFIX, DEFAULT_CONFIG.QUEST_REQUIRED_PREFIX);
+    const keywords = await GM.getValue(STORAGE_KEYS.QUEST_EXCLUDED_KEYWORDS, DEFAULT_CONFIG.QUEST_EXCLUDED_KEYWORDS);
+    this.config.requiredPrefix = prefix;
+    this.config.excludedKeywords = keywords.split(',').map((k) => k.trim()).filter(Boolean);
+  }
 
   private isValidQuest(quest: Quest): boolean {
     return (
@@ -107,9 +116,36 @@ class QuestManager {
 
     toast.success(`✅ 已添加 ${quests.length} 个任务到执行队列`);
     logger.success(`已添加 ${quests.length} 个任务`);
+    analytics.track('任务', '刷新任务', `${quests.length}个`);
   }
 
   async refreshCards(): Promise<void> {
+    await this.init();
+
+    // 首次运行提示
+    const isFirstRun = await GM.getValue(STORAGE_KEYS.QUEST_FIRST_RUN, true);
+    if (isFirstRun) {
+      return new Promise((resolve) => {
+        toast.confirm(
+          `<strong>任务自动刷新说明</strong><br><br>
+          • 自动提交已完成的任务<br>
+          • 刷新不符合条件的任务（前缀: ${this.config.requiredPrefix}）<br>
+          • 排除关键词: ${this.config.excludedKeywords.join('、') || '无'}<br>
+          • 自动去重并添加到执行队列<br><br>
+          <small>可在设置中修改筛选条件</small>`,
+          async () => {
+            await GM.setValue(STORAGE_KEYS.QUEST_FIRST_RUN, false);
+            await this.executeRefresh();
+            resolve();
+          }
+        );
+      });
+    }
+
+    await this.executeRefresh();
+  }
+
+  private async executeRefresh(): Promise<void> {
     const progress = toast.progress('正在获取任务列表...');
 
     try {

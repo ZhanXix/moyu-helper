@@ -117,3 +117,8 @@ MIT
 ## 🤝 贡献
 
 欢迎提交 Issue 和 Pull Request！
+
+## 常用git
+git merge --squash dev
+git branch -d dev
+git push origin --delete dev

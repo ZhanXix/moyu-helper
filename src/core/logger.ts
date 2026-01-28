@@ -3,7 +3,7 @@
  * 支持多级别日志输出和日志级别过滤
  */
 
-type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'success';
+export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'success' | 'none';
 
 interface LogConfig {
   emoji: string;
@@ -18,26 +18,22 @@ const LOG_CONFIGS: Record<LogLevel, LogConfig> = {
   success: { emoji: '✅', color: '#10b981', method: 'log', priority: 2 },
   warn: { emoji: '⚠️', color: '#f59e0b', method: 'warn', priority: 3 },
   error: { emoji: '❌', color: '#ef4444', method: 'error', priority: 4 },
+  none: { emoji: '', color: '', method: 'log', priority: 999 },
 };
 
 class Logger {
-  private enabled = false;
-  private minLevel: LogLevel = 'debug';
-
-  setEnabled(enabled: boolean): void {
-    this.enabled = enabled;
-  }
-
-  isEnabled(): boolean {
-    return this.enabled;
-  }
+  private minLevel: LogLevel = 'none';
 
   setMinLevel(level: LogLevel): void {
     this.minLevel = level;
   }
 
+  getMinLevel(): LogLevel {
+    return this.minLevel;
+  }
+
   private shouldLog(level: LogLevel): boolean {
-    return this.enabled && LOG_CONFIGS[level].priority >= LOG_CONFIGS[this.minLevel].priority;
+    return LOG_CONFIGS[level].priority >= LOG_CONFIGS[this.minLevel].priority;
   }
 
   private log(level: LogLevel, ...args: any[]): void {

@@ -5,7 +5,7 @@
 
 import { ws } from '@/core/websocket';
 import { logger } from '@/core/logger';
-import { sleep } from '@/utils';
+import { sleep, analytics } from '@/utils';
 
 interface SkillAllocationSummary {
   treeId: string;
@@ -70,9 +70,19 @@ class SkillAllocationManager {
   /**
    * 根据策略和当前状态选择下一个要加点的节点
    */
-  private selectNextNode(summary: SkillAllocationSummary, strategy: string, specialty: string): string | null {
+  private selectNextNode(
+    summary: SkillAllocationSummary,
+    strategy: string,
+    specialty: string,
+    luckyFirst: boolean,
+  ): string | null {
     const { canAllocate, nodeLevels } = summary;
     const getLevel = (nodeId: string) => nodeLevels[nodeId] || 0;
+
+    // 幸运优先：先加满幸运
+    if (luckyFirst && canAllocate['l_lucky_basics'] && getLevel('l_lucky_basics') < 10) {
+      return 'l_lucky_basics';
+    }
 
     if (strategy === '效率优先') {
       if (canAllocate['l_efficiency_basics'] && getLevel('l_efficiency_basics') < 2) return 'l_efficiency_basics';
@@ -98,8 +108,8 @@ class SkillAllocationManager {
       if (canAdd && nodeId !== 'l_lucky_basics') return nodeId;
     }
 
-    // 最后尝试幸运
-    if (canAllocate['l_lucky_basics']) return 'l_lucky_basics';
+    // 最后尝试幸运（非幸运优先模式）
+    if (!luckyFirst && canAllocate['l_lucky_basics']) return 'l_lucky_basics';
 
     return null;
   }
@@ -110,10 +120,11 @@ class SkillAllocationManager {
   async autoAllocate(
     strategy: string,
     specialty: string,
+    luckyFirst: boolean = false,
     treeId: string = 'life',
     onProgress?: (remaining: number, total: number, nodeId: string) => void,
   ): Promise<void> {
-    logger.info(`开始自动加点: 策略=${strategy}, 专精=${specialty}`);
+    logger.info(`开始自动加点: 策略=${strategy}, 专精=${specialty}, 幸运优先=${luckyFirst}`);
 
     // 1. 重置技能点
     let summary = await this.reset(treeId);
@@ -122,7 +133,7 @@ class SkillAllocationManager {
     // 2. 循环加点直到点数为0
     while (summary.available > 0) {
       // 3. 根据策略选择下一个加点节点
-      const nextNode = this.selectNextNode(summary, strategy, specialty);
+      const nextNode = this.selectNextNode(summary, strategy, specialty, luckyFirst);
 
       if (!nextNode) {
         logger.warn('没有可加点的节点，停止加点');
@@ -140,6 +151,7 @@ class SkillAllocationManager {
     }
 
     logger.success(`自动加点完成: 总点数=${totalPoints}, 剩余=${summary.available}`);
+    analytics.track('技能分配', '自动加点', `${strategy}-${specialty}`);
   }
 
   /**

@@ -9,7 +9,7 @@ type GameResource = Record<string, { name?: string; [key: string]: any }>;
  * 获取游戏资源对象
  */
 function getGameResources(): GameResource | null {
-  return (unsafeWindow as any).tAllGameResource || null;
+  return unsafeWindow.tAllGameResource || null;
 }
 
 /**
@@ -70,7 +70,7 @@ export const getResourceName: GetResourceName = (input: string | string[]): any 
  * 将资源工具函数挂载到 unsafeWindow 供控制台使用
  */
 export function mountResourceUtils(): void {
-  const win = unsafeWindow as any;
+  const win = unsafeWindow;
   win.getResourceKey = getResourceKey;
   win.getResourceName = getResourceName;
   console.info('🐟 资源工具函数已挂载: getResourceKey, getResourceName');

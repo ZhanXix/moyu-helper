@@ -35,6 +35,10 @@ class TaskQueue {
     logger.debug('任务队列配置已更新', this.config);
   }
 
+  setBatchDelay(ms: number): void {
+    this.config.batchDelay = Math.max(0, ms);
+  }
+
   setBatchSize(size: number): void {
     this.config.batchSize = Math.max(1, size);
   }
@@ -125,15 +129,17 @@ class TaskQueue {
 }
 
 export const taskQueue = new TaskQueue({
-  interval: DEFAULT_CONFIG.TASK_INTERVAL * 1000,
+  interval: DEFAULT_CONFIG.TASK_INTERVAL,
   batchSize: DEFAULT_CONFIG.QUEST_BATCH_SIZE,
-  batchDelay: 5000,
+  batchDelay: DEFAULT_CONFIG.BATCH_DELAY,
 });
 
 // 初始化配置
 (async () => {
   const batchSize = await GM.getValue(STORAGE_KEYS.QUEST_BATCH_SIZE, DEFAULT_CONFIG.QUEST_BATCH_SIZE);
   const taskInterval = await GM.getValue(STORAGE_KEYS.TASK_INTERVAL, DEFAULT_CONFIG.TASK_INTERVAL);
+  const batchDelay = await GM.getValue(STORAGE_KEYS.BATCH_DELAY, DEFAULT_CONFIG.BATCH_DELAY);
   taskQueue.setBatchSize(batchSize);
-  taskQueue.setInterval(taskInterval * 1000);
+  taskQueue.setInterval(taskInterval);
+  taskQueue.setBatchDelay(batchDelay);
 })();

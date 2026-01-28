@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite';
 import monkey from 'vite-plugin-monkey';
+import preact from '@preact/preset-vite';
 import path from 'path';
 import pkg from './package.json';
 
@@ -13,6 +14,7 @@ export default defineConfig({
     },
   },
   plugins: [
+    preact(),
     monkey({
       entry: 'src/main.ts',
       userscript: {

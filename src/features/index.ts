@@ -3,7 +3,7 @@
  * 导出任务、物品、工具栏和资源监控功能
  */
 export * from './quest';
-export * from './item-user';
+export * from './satiety-manager';
 export * from './quality-toolbar';
 export * from './resource-monitor';
 export * from './craft-manager';

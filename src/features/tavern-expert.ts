@@ -5,6 +5,7 @@
 
 import { logger, toast, ws, dataCache } from '@/core';
 import type { TavernExpert } from '@/types/game-data';
+import { analytics } from '@/utils';
 
 class TavernExpertManager {
   private isLoading = false;
@@ -24,12 +25,15 @@ class TavernExpertManager {
       if (!enhanceExpert) {
         await ws.sendAndListen('tavern:hireExpert', { catId: 'enhanceExpert', hours: 1 });
         toast.success('✅ 强化专家已启用');
+        analytics.track('酒馆专家', '启用', '强化专家');
       } else if (enhanceExpert.state === 'WORKING') {
         await ws.sendAndListen('tavern:pause', { catId: 'enhanceExpert' });
         toast.success('✅ 强化专家已暂停');
+        analytics.track('酒馆专家', '暂停', '强化专家');
       } else {
         await ws.sendAndListen('tavern:resume', { catId: 'enhanceExpert' });
         toast.success('✅ 强化专家已恢复');
+        analytics.track('酒馆专家', '恢复', '强化专家');
       }
 
       const res = await ws.sendAndListen('tavern:getMyExperts');
@@ -44,9 +48,9 @@ class TavernExpertManager {
 
   getButtonText(): string {
     try {
-      if (!dataCache.get('tavern')) return '🐱 强化专家';
+      const tavern: TavernExpert[] | null = dataCache.get('tavern');
+      if (!tavern) return '🐱 强化专家';
 
-      const tavern: TavernExpert[] = (dataCache as any).caches.tavern.data || [];
       const enhanceExpert = tavern.find((expert) => expert.type === 'enhanceExpert');
 
       if (!enhanceExpert) return '🐱 启用强化专家';

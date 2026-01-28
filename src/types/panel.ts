@@ -4,4 +4,5 @@
 export interface PanelButton {
   text: string;
   onClick: () => void;
+  order?: number;
 }

@@ -8,7 +8,8 @@ import { logger } from '@/core/logger';
 import { toast } from '@/core/toast';
 import { ws } from '@/core/websocket';
 import { dataCache } from '@/core/data-cache';
-import type { CraftItem } from '@/types';
+import type { CraftItem, CraftItemCategory } from '@/types';
+import { analytics } from '@/utils';
 
 interface CraftStep {
   name: string;
@@ -17,12 +18,16 @@ interface CraftStep {
 }
 
 class CraftManager {
-  private items = DEFAULT_CRAFT_ITEMS;
+  private categories = DEFAULT_CRAFT_ITEMS;
   private running = false;
   private progressToast: any = null;
 
+  getCraftCategories(): CraftItemCategory[] {
+    return this.categories;
+  }
+
   getCraftItems(): CraftItem[] {
-    return this.items;
+    return this.categories.flatMap((category) => category.items);
   }
 
   getDisplayName(name: string): string {
@@ -36,11 +41,19 @@ class CraftManager {
   }
 
   private findByActionId(actionId: string): CraftItem | undefined {
-    return this.items.find((item) => item.actionId === actionId);
+    for (const category of this.categories) {
+      const item = category.items.find((item) => item.actionId === actionId);
+      if (item) return item;
+    }
+    return undefined;
   }
 
   private findByRewardId(rewardId: string): CraftItem | undefined {
-    return this.items.find((item) => item.rewards.some((r) => r.itemId === rewardId));
+    for (const category of this.categories) {
+      const item = category.items.find((item) => item.rewards.some((r) => r.itemId === rewardId));
+      if (item) return item;
+    }
+    return undefined;
   }
 
   private buildPlan(actionId: string, targetCount: number): CraftStep[] {
@@ -88,7 +101,7 @@ class CraftManager {
 
       const count = needs.get(id) || 0;
       if (count > 0) {
-        plan.push({ name: current.name, actionId: id, count });
+        plan.push({ name: current.label, actionId: id, count });
       }
     };
 
@@ -218,6 +231,7 @@ class CraftManager {
 
       this.progressToast?.hide();
       toast.success(`已提交 ${optimized.length} 个制造任务`);
+      analytics.track('制造', '玩家制造', `${optimized.length}个任务`);
     } catch (error) {
       logger.error('制造失败', error);
       toast.error('制造失败');
@@ -300,6 +314,7 @@ class CraftManager {
       this.progressToast?.hide();
       const taskCount = addedDefaultTask ? tasks.length + 1 : tasks.length;
       toast.success(`🐱 ${kittyName} 已提交 ${taskCount} 个任务`);
+      analytics.track('制造', '猫咪制造', `${taskCount}个任务`);
     } catch (error) {
       logger.error(`🐱 ${kittyName} 制造失败`, error);
       toast.error('制造失败');

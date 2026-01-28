@@ -13,7 +13,7 @@ import { logger, ws, dataCache } from './core';
 import {
   questManager,
   qualityToolbarManager,
-  itemManager,
+  satietyManager,
   resourceMonitor,
   craftManager,
   battleGuard,
@@ -21,6 +21,7 @@ import {
 } from './features';
 import { mountResourceUtils } from './utils';
 import { STORAGE_KEYS, DEFAULT_CONFIG } from './config/defaults';
+import { analytics } from './utils';
 
 /**
  * 应用模块注册表
@@ -28,7 +29,7 @@ import { STORAGE_KEYS, DEFAULT_CONFIG } from './config/defaults';
 interface AppModules {
   quest: typeof questManager;
   toolbar: typeof qualityToolbarManager;
-  items: typeof itemManager;
+  satiety: typeof satietyManager;
   resources: typeof resourceMonitor;
   craft: typeof craftManager;
   settings: typeof settingsPanel;
@@ -39,7 +40,7 @@ interface AppModules {
 const app: AppModules = {
   quest: questManager,
   toolbar: qualityToolbarManager,
-  items: itemManager,
+  satiety: satietyManager,
   resources: resourceMonitor,
   craft: craftManager,
   settings: settingsPanel,
@@ -51,8 +52,8 @@ const app: AppModules = {
  * 初始化日志系统
  */
 async function initLogger(): Promise<void> {
-  const enabled = await GM.getValue(STORAGE_KEYS.CONSOLE_LOG_ENABLED, DEFAULT_CONFIG.CONSOLE_LOG_ENABLED);
-  logger.setEnabled(enabled);
+  const logLevel = await GM.getValue(STORAGE_KEYS.LOG_LEVEL, DEFAULT_CONFIG.LOG_LEVEL);
+  logger.setMinLevel(logLevel);
 }
 
 /**
@@ -71,24 +72,24 @@ function initCoreModules(): void {
 const getMenuButtons = (): PanelButton[] => {
   const buttons: PanelButton[] = [
     {
-      text: '⚙️ 设置',
+      text: '⚙️ 脚本设置',
       onClick: () => app.settings.show(),
+      order: 999,
     },
     {
-      text: '🎒 使用浆果',
-      onClick: () => app.items.useAll(),
-    },
-    {
-      text: '🌳 技能树加点',
+      text: '🌳 技能加点',
       onClick: () => app.skillAllocationPanel.show(),
+      order: 4,
     },
     {
-      text: '📜 获取任务列表',
+      text: '📜 刷新任务',
       onClick: () => app.quest.refreshCards(),
+      order: 2,
     },
     {
       text: '🔨 物品制造',
       onClick: () => app.craftPanel.show(),
+      order: 1,
     },
   ];
 
@@ -97,16 +98,17 @@ const getMenuButtons = (): PanelButton[] => {
     buttons.push({
       text: tavernExpertManager.getButtonText(),
       onClick: () => tavernExpertManager.toggle(),
+      order: 6,
     });
   }
 
   // 动态添加资源监控按钮（仅在启用时显示）
   const resourceButton = app.resources.getButton();
   if (resourceButton) {
-    buttons.push(resourceButton);
+    buttons.push({ ...resourceButton, order: 3 });
   }
 
-  return buttons;
+  return buttons.sort((a, b) => (b.order ?? -1) - (a.order ?? -1));
 };
 
 /**
@@ -134,8 +136,12 @@ function initFeatureModules(): void {
   // 初始化战斗防护
   battleGuard.init();
 
+  // 初始化饱食度管理器
+  app.satiety.init();
+
   // 设置面板依赖注入
   app.settings.setResourceMonitor(app.resources);
+  app.settings.setSatietyManager(app.satiety);
 
   // 监听用户信息初始化事件，自动检查资源
   ws.once('characterInitData', (data) => {
@@ -152,6 +158,7 @@ function initFeatureModules(): void {
 async function main(): Promise<void> {
   logger.info('脚本开始加载...');
 
+  analytics.init();
   await initLogger();
   initCoreModules();
   initFeatureModules();
@@ -159,13 +166,38 @@ async function main(): Promise<void> {
   logger.success('核心功能已启动');
 }
 
+/**
+ * 等待指定元素出现
+ */
+function waitForElement(selector: string): Promise<Element> {
+  return new Promise((resolve) => {
+    const element = document.querySelector(selector);
+    if (element) {
+      resolve(element);
+      return;
+    }
+
+    const observer = new MutationObserver(() => {
+      const element = document.querySelector(selector);
+      if (element) {
+        observer.disconnect();
+        resolve(element);
+      }
+    });
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    });
+  });
+}
+
 // 立即初始化核心模块，避免错过早期 WebSocket 事件
 void main();
 
-// 页面加载完成后初始化 UI
-window.addEventListener('load', () => {
-  setTimeout(() => {
-    initUI();
-    logger.success('UI 初始化完成');
-  }, 1000);
+// 等待 .user-dropdown 元素出现后初始化 UI
+void waitForElement('.user-dropdown').then(() => {
+  initUI();
+  analytics.track('脚本', '启动', '成功');
+  logger.success('UI 初始化完成');
 });

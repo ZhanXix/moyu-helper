@@ -7,8 +7,47 @@
  * - 第三方库类型声明（pako）
  */
 
+// 游戏资源类型定义
+interface GameResourceItem {
+  id?: string;
+  name?: string;
+  description?: string;
+  icon?: string;
+  category?: string[];
+  equipPart?: string;
+  equipmentType?: string[];
+  onEquip?: Array<{
+    name?: string;
+    statusEffect?: Array<{
+      status: string;
+      increase?: number;
+      decrease?: number;
+    }>;
+    actionDurationEffect?: Array<{
+      action: string;
+      increase?: number;
+      decrease?: number;
+    }>;
+  }>;
+  rewardEnhanceExp?: number;
+  [key: string]: any;
+}
+
+type GameResourceCollection = Record<string, GameResourceItem>;
+
 // 油猴脚本全局类型声明
-declare const unsafeWindow: Window & typeof globalThis;
+declare const unsafeWindow: Window &
+  typeof globalThis & {
+    tAllGameResource: GameResourceCollection;
+    getResourceKey: {
+      (name: string): string | undefined;
+      (names: string[]): string[];
+    };
+    getResourceName: {
+      (key: string): string | undefined;
+      (keys: string[]): string[];
+    };
+  };
 
 // 油猴 API 类型声明
 declare const GM: {

@@ -124,16 +124,13 @@ class DataCacheManager {
   }
 
   /**
-   * 同步获取缓存数据（仅检查是否存在）
+   * 同步获取缓存数据
    * @param key 缓存键
-   * @returns 是否存在缓存数据
+   * @returns 缓存数据，如果不存在则返回 null
    */
-  get(key: CacheKey): boolean {
+  get<K extends CacheKey>(key: K): CacheMap[K] | null {
     const cache = this.caches[key];
-    if (Array.isArray(cache.data)) {
-      return cache.data.length > 0;
-    }
-    return cache.data !== null;
+    return cache.data;
   }
 
   /**

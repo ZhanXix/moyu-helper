@@ -1,6 +1,6 @@
 {
   "name": "moyu-helper",
-  "version": "1.0.2",
+  "version": "1.0.5",
   "description": "摸鱼助手 - 摸鱼放置游戏自动化辅助脚本",
   "type": "module",
   "packageManager": "yarn@1.22.22",
@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
+    "@preact/preset-vite": "^2.10.3",
     "@types/node": "20",
     "@typescript-eslint/eslint-plugin": "^8.19.1",
     "@typescript-eslint/parser": "^8.19.1",
@@ -28,6 +29,7 @@
     "vite-plugin-monkey": "^4.0.6"
   },
   "dependencies": {
-    "pako": "^2.1.0"
+    "pako": "^2.1.0",
+    "preact": "^10.28.2"
   }
 }

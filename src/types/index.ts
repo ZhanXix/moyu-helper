@@ -26,9 +26,18 @@ export interface CraftReward {
  * 可制造物品配置
  */
 export interface CraftItem {
-  id: string;
-  name: string;
+  label: string;
+  value: string;
   actionId: string;
   rewards: CraftReward[]; // 所有产出物品
   dependencies?: CraftDependency[];
+}
+
+/**
+ * 按分类组织的制造物品配置
+ */
+export interface CraftItemCategory {
+  label: string;
+  value: string;
+  items: CraftItem[];
 }

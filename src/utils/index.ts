@@ -5,3 +5,4 @@
 export * from './task-queue';
 export * from './resource';
 export * from './dom';
+export * from './analytics';
