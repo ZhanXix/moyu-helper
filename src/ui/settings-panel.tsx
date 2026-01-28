@@ -269,19 +269,19 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
     <>
       <Card title="🎯 功能开关">
         <Row>
-          <Checkbox checked={craftPanelEnabled} onChange={setCraftPanelEnabled} label="物品制造" />
+          <Checkbox checked={craftPanelEnabled} onChange={setCraftPanelEnabled} label="物品制造 - 批量制造物品，自动计算依赖" />
         </Row>
         <Row>
-          <Checkbox checked={skillAllocationEnabled} onChange={setSkillAllocationEnabled} label="技能加点" />
+          <Checkbox checked={skillAllocationEnabled} onChange={setSkillAllocationEnabled} label="技能加点 - 快速分配技能点" />
         </Row>
         <Row>
-          <Checkbox checked={tavernExpertEnabled} onChange={setTavernExpertEnabled} label="酒馆专家" />
+          <Checkbox checked={tavernExpertEnabled} onChange={setTavernExpertEnabled} label="酒馆专家 - 自动刷新酒馆任务" />
         </Row>
         <Row>
-          <Checkbox checked={battleGuardEnabled} onChange={setBattleGuardEnabled} label="战斗防护" />
+          <Checkbox checked={battleGuardEnabled} onChange={setBattleGuardEnabled} label="战斗防护 - 血量过低自动逃跑" />
         </Row>
         <Row>
-          <Checkbox checked={qualityToolbarEnabled} onChange={setQualityToolbarEnabled} label="缩小生活质量图标" />
+          <Checkbox checked={qualityToolbarEnabled} onChange={setQualityToolbarEnabled} label="缩小生活质量图标 - 优化界面显示" />
         </Row>
       </Card>
 

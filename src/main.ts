@@ -278,8 +278,10 @@ function waitForElement(selector: string): Promise<Element> {
 void main();
 
 // 等待 .user-dropdown 元素出现后初始化 UI
-void waitForElement('.user-dropdown').then(async () => {
-  await initUI();
-  analytics.track('脚本', '启动', `v${GM.info.script.version}`);
-  logger.success('UI 初始化完成');
+void waitForElement('.user-dropdown').then(() => {
+  setTimeout(async () => {
+    await initUI();
+    analytics.track('脚本', '启动', `v${GM.info.script.version}`);
+    logger.success('UI 初始化完成');
+  }, 2000);
 });
