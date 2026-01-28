@@ -57,6 +57,14 @@ declare const GM: {
   deleteValue(key: string): Promise<void>;
   getResourceText(name: string): Promise<string>;
   addStyle(css: string): Promise<void>;
+  info: {
+    script: {
+      version: string;
+      name: string;
+      [key: string]: any;
+    };
+    [key: string]: any;
+  };
 };
 
 // pako 压缩库类型声明

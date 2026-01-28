@@ -4,6 +4,7 @@
 
 import { render } from 'preact';
 import type { PanelButton } from '@/types';
+import { logger } from '@/core';
 
 const STYLES = `
 .mh-fab{position:fixed;bottom:calc(var(--spacing) * 25);z-index:1001;width:60px;height:60px;border-radius:50%;border:none;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.08);color:#6366f1;font-size:20px;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1)}
@@ -54,15 +55,16 @@ function FloatingMenu({ buttons, isOpen, onClose, isModalMode }: FloatingMenuPro
 }
 
 interface PanelOptions {
-  subButtons?: PanelButton[] | (() => PanelButton[]);
+  subButtons?: PanelButton[] | (() => PanelButton[] | Promise<PanelButton[]>);
 }
 
 class FloatingPanel {
-  private buttonSource: PanelButton[] | (() => PanelButton[]);
+  private buttonSource: PanelButton[] | (() => PanelButton[] | Promise<PanelButton[]>);
   private fab: HTMLButtonElement;
   private menuContainer: HTMLDivElement;
   private isOpen = false;
   private isModalMode = false;
+  private cachedButtons: PanelButton[] = [];
 
   constructor(options: PanelOptions = {}) {
     this.buttonSource = options.subButtons || [];
@@ -70,17 +72,23 @@ class FloatingPanel {
     this.menuContainer = this.createMenuContainer();
     this.bindEvents();
     this.checkModalMode();
-    this.renderMenu();
+    this.loadAndRenderMenu().catch((error) => logger.error('Failed to load menu', error));
   }
 
-  private getButtons(): PanelButton[] {
-    return typeof this.buttonSource === 'function' ? this.buttonSource() : this.buttonSource;
+  private async getButtons(): Promise<PanelButton[]> {
+    const result = typeof this.buttonSource === 'function' ? this.buttonSource() : this.buttonSource;
+    return result instanceof Promise ? await result : result;
+  }
+
+  private async loadAndRenderMenu(): Promise<void> {
+    this.cachedButtons = await this.getButtons();
+    this.renderMenu();
   }
 
   private createFab(): HTMLButtonElement {
     const btn = document.createElement('button');
     btn.className = 'mh-fab right-6 md:right-8';
-    btn.innerHTML = '☰';
+    btn.textContent = '☰';
     btn.onclick = (e) => {
       e.stopPropagation();
       this.toggle();
@@ -112,7 +120,7 @@ class FloatingPanel {
   private renderMenu(): void {
     render(
       <FloatingMenu
-        buttons={this.getButtons()}
+        buttons={this.cachedButtons}
         isOpen={this.isOpen}
         onClose={() => this.close()}
         isModalMode={this.isModalMode}
@@ -134,7 +142,7 @@ class FloatingPanel {
     });
 
     window.addEventListener('settings-updated', () => {
-      this.renderMenu();
+      this.loadAndRenderMenu().catch((error) => logger.error('Failed to reload menu', error));
     });
 
     window.addEventListener('resize', () => {
@@ -151,12 +159,12 @@ class FloatingPanel {
     }
   }
 
-  private open(): void {
+  private async open(): Promise<void> {
     this.isOpen = true;
     this.checkModalMode();
-    this.renderMenu();
+    await this.loadAndRenderMenu();
 
-    this.fab.innerHTML = '✕';
+    this.fab.textContent = '✕';
     Object.assign(this.fab.style, {
       transform: 'scale(1.08) rotate(90deg)',
       background: '#6366f1',
@@ -168,7 +176,7 @@ class FloatingPanel {
     this.isOpen = false;
     this.renderMenu();
 
-    this.fab.innerHTML = '☰';
+    this.fab.textContent = '☰';
     Object.assign(this.fab.style, {
       transform: 'scale(1) rotate(0deg)',
       background: '#fff',

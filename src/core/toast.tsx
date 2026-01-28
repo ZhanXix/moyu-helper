@@ -1,7 +1,5 @@
-/**
- * 消息提示系统
- * 提供统一的用户通知接口，支持多种类型和持久化显示
- */
+import { render } from 'preact';
+import { useEffect, useRef } from 'preact/hooks';
 
 const TOAST_STYLES = `
 .mh-toast-container{position:fixed;top:20px;left:50%;transform:translateX(-50%);width:90%;max-width:600px;z-index:9000;pointer-events:none}
@@ -28,6 +26,71 @@ const TOAST_STYLES = `
 
 GM.addStyle(TOAST_STYLES);
 
+interface ToastProps {
+  type: 'info' | 'success' | 'warning' | 'error' | 'confirm';
+  message: string;
+  timeout?: number | false;
+  onClose: () => void;
+  onConfirm?: () => void;
+}
+
+function ToastComponent({ type, message, timeout, onClose, onConfirm }: ToastProps) {
+  const progressRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (timeout !== false && progressRef.current) {
+      requestAnimationFrame(() => {
+        if (progressRef.current) {
+          progressRef.current.style.width = '0%';
+          progressRef.current.style.transitionDuration = `${timeout}ms`;
+        }
+      });
+
+      const timer = setTimeout(onClose, timeout);
+      return () => clearTimeout(timer);
+    }
+  }, [timeout, onClose]);
+
+  const handleConfirm = () => {
+    onConfirm?.();
+    onClose();
+  };
+
+  return (
+    <div className={`mh-toast ${type}`}>
+      <div style={{ flex: 1 }}>
+        <div className="mh-toast-msg" dangerouslySetInnerHTML={{ __html: message }} />
+        {type === 'confirm' && (
+          <div className="mh-toast-buttons">
+            {onConfirm && (
+              <button className="mh-toast-btn primary" onClick={handleConfirm}>
+                确定
+              </button>
+            )}
+            <button className="mh-toast-btn secondary" onClick={onClose}>
+              {onConfirm ? '取消' : '关闭'}
+            </button>
+          </div>
+        )}
+      </div>
+      {type !== 'confirm' && (
+        <button className="mh-toast-close" onClick={onClose}>
+          ×
+        </button>
+      )}
+      {timeout !== false && <div ref={progressRef} className="mh-toast-progress" style={{ width: '100%' }} />}
+    </div>
+  );
+}
+
+function ProgressToastComponent({ message }: { message: string }) {
+  return (
+    <div className="mh-toast info">
+      <div className="mh-toast-msg">{message}</div>
+    </div>
+  );
+}
+
 interface ProgressToast {
   update(msg: string): void;
   hide(): void;
@@ -49,46 +112,17 @@ class Toast {
     return this.container;
   }
 
-  private createCloseButton(onClose: () => void): HTMLButtonElement {
-    const btn = document.createElement('button');
-    btn.className = 'mh-toast-close';
-    btn.innerHTML = '×';
-    btn.onclick = onClose;
-    return btn;
-  }
-
   private async show(type: ToastType, msg: string, timeout: number | false = 2000): Promise<void> {
     return new Promise((resolve) => {
       const container = this.getContainer();
 
-      // 限制同时显示的 toast 数量
       if (this.toastCount >= this.MAX_TOASTS) {
         const oldToast = container.firstElementChild;
         if (oldToast) this.remove(oldToast as HTMLElement);
       }
 
       const toast = document.createElement('div');
-      toast.className = `mh-toast ${type}`;
-
-      const msgEl = document.createElement('div');
-      msgEl.className = 'mh-toast-msg';
-      msgEl.innerHTML = msg;
-      toast.appendChild(msgEl);
-
-      toast.appendChild(this.createCloseButton(() => this.remove(toast, resolve)));
-
-      if (timeout !== false) {
-        const progress = document.createElement('div');
-        progress.className = 'mh-toast-progress';
-        toast.appendChild(progress);
-
-        requestAnimationFrame(() => {
-          progress.style.width = '0%';
-          progress.style.transitionDuration = `${timeout}ms`;
-        });
-
-        setTimeout(() => this.remove(toast, resolve), timeout);
-      }
+      render(<ToastComponent type={type} message={msg} timeout={timeout} onClose={() => this.remove(toast, resolve)} />, toast);
 
       container.appendChild(toast);
       this.toastCount++;
@@ -112,12 +146,7 @@ class Toast {
   progress(msg: string): ProgressToast {
     const container = this.getContainer();
     const toast = document.createElement('div');
-    toast.className = 'mh-toast info';
-
-    const msgEl = document.createElement('div');
-    msgEl.className = 'mh-toast-msg';
-    msgEl.textContent = msg;
-    toast.appendChild(msgEl);
+    render(<ProgressToastComponent message={msg} />, toast);
 
     container.appendChild(toast);
     this.toastCount++;
@@ -126,7 +155,7 @@ class Toast {
 
     return {
       update: (newMsg: string) => {
-        if (!isHidden) msgEl.textContent = newMsg;
+        if (!isHidden) render(<ProgressToastComponent message={newMsg} />, toast);
       },
       hide: () => {
         if (!isHidden) {
@@ -140,51 +169,10 @@ class Toast {
   confirm(msg: string, onConfirm?: () => void, timeout?: number): void {
     const container = this.getContainer();
     const toast = document.createElement('div');
-    toast.className = 'mh-toast mh-toast-confirm';
-
-    const content = document.createElement('div');
-    content.style.flex = '1';
-
-    const msgEl = document.createElement('div');
-    msgEl.className = 'mh-toast-msg';
-    msgEl.innerHTML = msg;
-    content.appendChild(msgEl);
-
-    const buttons = document.createElement('div');
-    buttons.className = 'mh-toast-buttons';
-
-    if (onConfirm) {
-      const confirmBtn = document.createElement('button');
-      confirmBtn.className = 'mh-toast-btn primary';
-      confirmBtn.textContent = '确定';
-      confirmBtn.onclick = () => {
-        onConfirm();
-        this.remove(toast);
-      };
-      buttons.appendChild(confirmBtn);
-    }
-
-    const cancelBtn = document.createElement('button');
-    cancelBtn.className = 'mh-toast-btn secondary';
-    cancelBtn.textContent = onConfirm ? '取消' : '关闭';
-    cancelBtn.onclick = () => this.remove(toast);
-    buttons.appendChild(cancelBtn);
-
-    content.appendChild(buttons);
-    toast.appendChild(content);
-
-    if (timeout) {
-      const progress = document.createElement('div');
-      progress.className = 'mh-toast-progress';
-      toast.appendChild(progress);
-
-      requestAnimationFrame(() => {
-        progress.style.width = '0%';
-        progress.style.transitionDuration = `${timeout}ms`;
-      });
-
-      setTimeout(() => this.remove(toast), timeout);
-    }
+    render(
+      <ToastComponent type="confirm" message={msg} timeout={timeout || false} onClose={() => this.remove(toast)} onConfirm={onConfirm} />,
+      toast
+    );
 
     container.appendChild(toast);
     this.toastCount++;

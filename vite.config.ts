@@ -6,7 +6,7 @@ import pkg from './package.json';
 
 export default defineConfig({
   server: {
-    open: false,
+    open: true,
   },
   resolve: {
     alias: {

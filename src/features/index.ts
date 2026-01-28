@@ -1,12 +1,11 @@
 /**
  * 功能模块导出
- * 导出任务、物品、工具栏和资源监控功能
  */
-export * from './quest';
-export * from './satiety-manager';
-export * from './quality-toolbar';
-export * from './resource-monitor';
-export * from './craft-manager';
-export * from './skill-allocation';
-export * from './battle-guard';
-export * from './tavern-expert';
+export * from './quest.tsx';
+export * from './satiety-manager.tsx';
+export * from './quality-toolbar.tsx';
+export * from './resource-monitor.tsx';
+export * from './craft.tsx';
+export * from './skill-allocation.tsx';
+export * from './battle-guard.tsx';
+export * from './tavern-expert.tsx';

@@ -1,20 +1,91 @@
 /**
- * 资源监控器
- * 监控游戏内资源库存，自动检测资源不足或过量并提醒
+ * 资源监控功能模块
+ * 包含资源监控器和提醒组件
  */
 
+import { render } from 'preact';
 import { logger, toast, dataCache, ws } from '@/core';
 import type { PanelButton, Inventory } from '@/types';
 import { DEFAULT_CONFIG, STORAGE_KEYS, DEFAULT_RESOURCES } from '@/config/defaults';
 import type { MonitorType, ResourceConfig, ResourceCategory } from '@/config/defaults';
 import { analytics } from '@/utils';
 
-interface ResourceItem {
+// ==================== 类型定义 ====================
+
+export interface ResourceItem {
   name: string;
   count: number;
   threshold: number;
-  type?: MonitorType;
+  type: 'insufficient' | 'excess';
 }
+
+// ==================== 资源提醒组件 ====================
+
+interface ResourceAlertProps {
+  insufficientCount: number;
+  excessCount: number;
+  categories: Array<{ name: string; items: ResourceItem[] }>;
+}
+
+export function ResourceAlert({ insufficientCount, excessCount, categories }: ResourceAlertProps) {
+  const title =
+    insufficientCount > 0 && excessCount > 0
+      ? `⚠️ 资源监控警告 (${insufficientCount}项不足, ${excessCount}项超过)`
+      : insufficientCount > 0
+        ? `⚠️ 资源不足警告 (${insufficientCount}项)`
+        : `📦 资源超过警告 (${excessCount}项)`;
+
+  return (
+    <div style={{ textAlign: 'left' }}>
+      <div style={{ fontSize: '16px', fontWeight: '600', marginBottom: '12px' }}>{title}</div>
+      {categories.map((cat) => (
+        <div key={cat.name} style={{ marginBottom: '8px' }}>
+          <div style={{ fontSize: '13px', fontWeight: '600', color: '#666', marginBottom: '4px' }}>{cat.name}</div>
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              gap: '4px',
+              paddingLeft: '12px',
+            }}
+          >
+            {cat.items.map((item) => {
+              const diff = item.type === 'insufficient' ? item.threshold - item.count : item.count - item.threshold;
+              const diffText = item.type === 'insufficient' ? `-${diff}` : `+${diff}`;
+              return (
+                <div
+                  key={item.name}
+                  style={{
+                    width: 'calc(50% - 2px)',
+                    boxSizing: 'border-box',
+                    fontSize: '12px',
+                  }}
+                >
+                  {item.name}: {item.count}/{item.threshold} ({diffText})
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export function createResourceAlertHTML(
+  insufficientCount: number,
+  excessCount: number,
+  categories: Array<{ name: string; items: ResourceItem[] }>,
+): string {
+  const container = document.createElement('div');
+  render(
+    <ResourceAlert insufficientCount={insufficientCount} excessCount={excessCount} categories={categories} />,
+    container,
+  );
+  return container.innerHTML;
+}
+
+// ==================== 资源监控器 ====================
 
 class ResourceMonitor {
   private resources: Record<string, ResourceConfig>;
@@ -112,8 +183,7 @@ class ResourceMonitor {
 
     const problematicItems = this.findProblematicItems(inventory, gameResources);
 
-    // 自动购买基础资源并过滤掉已购买的
-    const remainingItems = this.autoBuyBaseResources(problematicItems, inventory);
+    const remainingItems = this.autoBuyBaseResources(problematicItems);
 
     const insufficientCount = remainingItems.filter((item) => item.type === 'insufficient').length;
     const excessCount = remainingItems.filter((item) => item.type === 'excess').length;
@@ -134,7 +204,7 @@ class ResourceMonitor {
 
     for (const [id, config] of Object.entries(this.resources)) {
       const count = inventory[id]?.count || 0;
-      const isProblematic = config.type === 'insufficient' ? count < config.threshold : count > config.threshold;
+      const isProblematic = config.type === 'insufficient' ? count < config.threshold : count >= config.threshold;
 
       if (isProblematic) {
         items.push({
@@ -149,7 +219,7 @@ class ResourceMonitor {
     return items;
   }
 
-  private autoBuyBaseResources(problematicItems: ResourceItem[], inventory: Inventory): ResourceItem[] {
+  private autoBuyBaseResources(problematicItems: ResourceItem[]): ResourceItem[] {
     if (!this.autoBuyEnabled) return problematicItems;
 
     const baseResources = ['berry', 'fish', 'wood', 'stone', 'coal'];
@@ -179,7 +249,7 @@ class ResourceMonitor {
     const categorized = this.categorizeItems(items);
     const insufficientCount = items.filter((item) => item.type === 'insufficient').length;
     const excessCount = items.filter((item) => item.type === 'excess').length;
-    const content = this.buildAlertHTML(insufficientCount, excessCount, categorized);
+    const content = createResourceAlertHTML(insufficientCount, excessCount, categorized);
 
     if (persistent) {
       toast.confirm(content);
@@ -206,50 +276,6 @@ class ResourceMonitor {
     }
 
     return result;
-  }
-
-  private buildAlertHTML(
-    insufficientCount: number,
-    excessCount: number,
-    categories: Array<{ name: string; items: ResourceItem[] }>,
-  ): string {
-    const title =
-      insufficientCount > 0 && excessCount > 0
-        ? `⚠️ 资源监控警告 (${insufficientCount}项不足, ${excessCount}项超过)`
-        : insufficientCount > 0
-          ? `⚠️ 资源不足警告 (${insufficientCount}项)`
-          : `📦 资源超过警告 (${excessCount}项)`;
-
-    const categoryHTML = categories
-      .map(
-        (cat) => `
-        <div style="margin-bottom: 8px;">
-          <div style="font-size: 13px; font-weight: 600; color: #666; margin-bottom: 4px;">${cat.name}</div>
-          <div class="resource-grid">
-            ${cat.items
-              .map((item) => {
-                const diff = item.type === 'insufficient' ? item.threshold - item.count : item.count - item.threshold;
-                const diffText = item.type === 'insufficient' ? `-${diff}` : `+${diff}`;
-                return `<div class="resource-item">${item.name}: ${item.count}/${item.threshold} (${diffText})</div>`;
-              })
-              .join('')}
-          </div>
-        </div>
-      `,
-      )
-      .join('');
-
-    return `
-      <style>
-        .resource-grid { display: flex; flex-wrap: wrap; gap: 4px; padding-left: 12px; }
-        .resource-item { width: calc(50% - 2px); box-sizing: border-box; font-size: 12px; }
-        @media (max-width: 768px) { .resource-item { width: 100%; } }
-      </style>
-      <div style="text-align: left;">
-        <div style="font-size: 16px; font-weight: 600; margin-bottom: 12px;">${title}</div>
-        ${categoryHTML}
-      </div>
-    `;
   }
 
   getButton(): PanelButton | null {
@@ -305,7 +331,6 @@ class ResourceMonitor {
     await GM.setValue(this.storageKeys.ENABLED, enabled);
     logger.info(`资源监控已${enabled ? '启用' : '禁用'}`);
 
-    // 触发设置更新事件
     window.dispatchEvent(new Event('settings-updated'));
   }
 

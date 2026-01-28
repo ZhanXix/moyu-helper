@@ -1,142 +1,25 @@
-// 此文件由 scripts/transform-data.js 自动生成，请勿手动修改
-
-import type { CraftItemCategory } from '@/types';
-
-/**
- * 物品制造依赖配置（树形结构）
- * 自动从游戏数据生成
- */
-export const DEFAULT_CRAFT_ITEMS: CraftItemCategory[] = [
+[
   {
-    value: 'collection_required_actions',
-    label: '收藏',
-    items: [
+    "value": "collection",
+    "label": "收藏",
+    "items": [
       {
-        value: 'exploreNewArea',
-        label: '探索',
-        actionId: 'exploreNewArea',
-        rewards: [
-          {
-            itemId: 'treasureMap',
-            count: 0.5,
-          },
-          {
-            itemId: 'catHairball',
-            count: 4,
-          },
-          {
-            itemId: 'berry',
-            count: 3.2,
-          },
-          {
-            itemId: 'honey',
-            count: 1.7999999999999998,
-          },
-        ],
+        "value": "reading",
+        "label": "读书",
+        "actionId": "reading",
+        "rewards": []
       },
       {
-        value: 'sericulture',
-        label: '养蚕',
-        actionId: 'sericulture',
-        rewards: [
+        "value": "swim",
+        "label": "游泳",
+        "actionId": "swim",
+        "rewards": [],
+        "dependencies": [
           {
-            itemId: 'silk',
-            count: 2,
-          },
-        ],
-      },
-      {
-        value: 'pearlCultivation',
-        label: '培育珍珠',
-        actionId: 'pearlCultivation',
-        rewards: [
-          {
-            itemId: 'pearl',
-            count: 1,
-          },
-          {
-            itemId: 'moonPearl',
-            count: 0.05,
-          },
-          {
-            itemId: 'blackPearl',
-            count: 0.01,
-          },
-        ],
-        dependencies: [
-          {
-            itemId: 'sand',
-            count: 15,
-          },
-          {
-            itemId: 'nutrientEssence',
-            count: 10,
-          },
-        ],
-      },
-      {
-        value: 'farmingSheep',
-        label: '照料绵羊',
-        actionId: 'farmingSheep',
-        rewards: [
-          {
-            itemId: 'wool',
-            count: 2,
-          },
-          {
-            itemId: 'animalManure',
-            count: 0.24,
-          },
-        ],
-      },
-      {
-        value: 'farmingChicken',
-        label: '照料小鸡仔',
-        actionId: 'farmingChicken',
-        rewards: [
-          {
-            itemId: 'chickenEgg',
-            count: 2,
-          },
-          {
-            itemId: 'animalManure',
-            count: 0.1,
-          },
-        ],
-      },
-      {
-        value: 'farmingCow',
-        label: '照料奶牛',
-        actionId: 'farmingCow',
-        rewards: [
-          {
-            itemId: 'milk',
-            count: 2,
-          },
-          {
-            itemId: 'animalManure',
-            count: 0.24,
-          },
-        ],
-      },
-      {
-        value: 'miningFishscaleMineral',
-        label: '开采鱼鳞矿',
-        actionId: 'miningFishscaleMineral',
-        rewards: [
-          {
-            itemId: 'gold',
-            count: 0.30000000000000004,
-          },
-          {
-            itemId: 'stone',
-            count: 8,
-          },
-          {
-            itemId: 'fishscaleMineral',
-            count: 0.8,
-          },
-        ],
+            "itemId": "gold",
+            "count": 25
+          }
+        ]
       },
       {
         value: 'charcoalMaking',
@@ -146,52 +29,6 @@ export const DEFAULT_CRAFT_ITEMS: CraftItemCategory[] = [
           {
             itemId: 'coal',
             count: 2,
-          },
-        ],
-      },
-      {
-        value: 'sewCashmere',
-        label: '缝制羊绒布料',
-        actionId: 'sewCashmere',
-        rewards: [
-          {
-            itemId: 'cashmere',
-            count: 1,
-          },
-        ],
-        dependencies: [
-          {
-            itemId: 'catHairball',
-            count: 10,
-          },
-          {
-            itemId: 'wool',
-            count: 30,
-          },
-        ],
-      },
-      {
-        value: 'sewSilkFabric',
-        label: '缝制丝绸布料',
-        actionId: 'sewSilkFabric',
-        rewards: [
-          {
-            itemId: 'silkFabric',
-            count: 1,
-          },
-        ],
-        dependencies: [
-          {
-            itemId: 'catHairball',
-            count: 10,
-          },
-          {
-            itemId: 'cashmere',
-            count: 1,
-          },
-          {
-            itemId: 'silk',
-            count: 20,
           },
         ],
       },
@@ -207,45 +44,12 @@ export const DEFAULT_CRAFT_ITEMS: CraftItemCategory[] = [
         ],
         dependencies: [
           {
-            itemId: 'glassBottles',
-            count: 1,
-          },
-        ],
-      },
-      {
-        value: 'cutBamboo',
-        label: '砍竹子',
-        actionId: 'cutBamboo',
-        rewards: [
-          {
-            itemId: 'bamboo',
-            count: 3,
-          },
-          {
-            itemId: 'luckyCatBox',
-            count: 0.01,
-          },
-        ],
-      },
-      {
-        value: 'reading',
-        label: '读书',
-        actionId: 'reading',
-        rewards: [],
-      },
-      {
-        value: 'swim',
-        label: '游泳',
-        actionId: 'swim',
-        rewards: [],
-        dependencies: [
-          {
-            itemId: 'gold',
-            count: 25,
-          },
-        ],
-      },
-    ],
+            "itemId": "glassBottles",
+            "count": 1
+          }
+        ]
+      }
+    ]
   },
   {
     value: '道具',
@@ -344,12 +148,58 @@ export const DEFAULT_CRAFT_ITEMS: CraftItemCategory[] = [
             count: 1,
           },
           {
-            itemId: 'fluff',
-            count: 5,
-          },
-        ],
+            "itemId": "fluff",
+            "count": 5
+          }
+        ]
       },
-    ],
+      {
+        "value": "sewSilkFabric",
+        "label": "缝制丝绸布料",
+        "actionId": "sewSilkFabric",
+        "rewards": [
+          {
+            "itemId": "silkFabric",
+            "count": 1
+          }
+        ],
+        "dependencies": [
+          {
+            "itemId": "catHairball",
+            "count": 10
+          },
+          {
+            "itemId": "cashmere",
+            "count": 1
+          },
+          {
+            "itemId": "silk",
+            "count": 20
+          }
+        ]
+      },
+      {
+        "value": "sewCashmere",
+        "label": "缝制羊绒布料",
+        "actionId": "sewCashmere",
+        "rewards": [
+          {
+            "itemId": "cashmere",
+            "count": 1
+          }
+        ],
+        "dependencies": [
+          {
+            "itemId": "catHairball",
+            "count": 10
+          },
+          {
+            "itemId": "wool",
+            "count": 30
+          }
+        ]
+      }
+    ]
   },
   {
     value: '近海',
@@ -377,23 +227,42 @@ export const DEFAULT_CRAFT_ITEMS: CraftItemCategory[] = [
     label: '矿洞',
     items: [
       {
-        value: 'miningFluffstone',
-        label: '开采绒毛岩',
-        actionId: 'miningFluffstone',
-        rewards: [
+        "value": "miningFluffstone",
+        "label": "开采绒毛岩",
+        "actionId": "miningFluffstone",
+        "rewards": [
           {
-            itemId: 'gold',
-            count: 0.30000000000000004,
+            "itemId": "gold",
+            "count": 0.30000000000000004
           },
           {
-            itemId: 'stone',
-            count: 8,
+            "itemId": "stone",
+            "count": 8
           },
           {
-            itemId: 'fluffstone',
-            count: 0.8,
+            "itemId": "fluffstone",
+            "count": 0.8
+          }
+        ]
+      },
+      {
+        "value": "miningFishscaleMineral",
+        "label": "开采鱼鳞矿",
+        "actionId": "miningFishscaleMineral",
+        "rewards": [
+          {
+            "itemId": "gold",
+            "count": 0.30000000000000004
           },
-        ],
+          {
+            "itemId": "stone",
+            "count": 8
+          },
+          {
+            "itemId": "fishscaleMineral",
+            "count": 0.8
+          }
+        ]
       },
       {
         value: 'miningWithShaft',
@@ -665,29 +534,50 @@ export const DEFAULT_CRAFT_ITEMS: CraftItemCategory[] = [
     ],
   },
   {
-    value: '其他',
-    label: '其他',
-    items: [
+    "value": "农田",
+    "label": "农田",
+    "items": [
       {
-        value: 'makeFishSoup',
-        label: '熬制鱼汤',
-        actionId: 'makeFishSoup',
-        rewards: [
+        "value": "cutBamboo",
+        "label": "砍竹子",
+        "actionId": "cutBamboo",
+        "rewards": [
           {
-            itemId: 'fishSoup',
-            count: 1,
+            "itemId": "bamboo",
+            "count": 3
           },
           {
-            itemId: 'mysteryCan',
-            count: 0.05,
+            "itemId": "luckyCatBox",
+            "count": 0.01
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "value": "其他",
+    "label": "其他",
+    "items": [
+      {
+        "value": "makeFishSoup",
+        "label": "熬制鱼汤",
+        "actionId": "makeFishSoup",
+        "rewards": [
+          {
+            "itemId": "fishSoup",
+            "count": 1
           },
-        ],
+          {
+            "itemId": "mysteryCan",
+            "count": 0.05
+          }
+        ]
       },
       {
-        value: 'archaeological',
-        label: '考古挖掘',
-        actionId: 'archaeological',
-        rewards: [
+        "value": "archaeological",
+        "label": "考古挖掘",
+        "actionId": "archaeological",
+        "rewards": [
           {
             itemId: 'catAntiqueShard',
             count: 2,
@@ -715,65 +605,117 @@ export const DEFAULT_CRAFT_ITEMS: CraftItemCategory[] = [
         ],
       },
       {
-        value: 'brewMysticalCatnipPotion',
-        label: '炼制猫薄荷药剂',
-        actionId: 'brewMysticalCatnipPotion',
-        rewards: [
+        "value": "brewMysticalCatnipPotion",
+        "label": "炼制猫薄荷药剂",
+        "actionId": "brewMysticalCatnipPotion",
+        "rewards": [
           {
-            itemId: 'catPotion',
-            count: 1,
+            "itemId": "catPotion",
+            "count": 1
           },
           {
-            itemId: 'moonlightBell',
-            count: 0.3,
-          },
+            "itemId": "moonlightBell",
+            "count": 0.3
+          }
         ],
-        dependencies: [
+        "dependencies": [
           {
-            itemId: 'catnipGem',
-            count: 1,
+            "itemId": "catnipGem",
+            "count": 1
           },
           {
-            itemId: 'mysticalEssence',
-            count: 1,
-          },
-        ],
+            "itemId": "mysticalEssence",
+            "count": 1
+          }
+        ]
       },
       {
-        value: 'makeWoodPulp',
-        label: '木浆',
-        actionId: 'makeWoodPulp',
-        rewards: [
+        "value": "makeWoodPulp",
+        "label": "木浆",
+        "actionId": "makeWoodPulp",
+        "rewards": [
           {
-            itemId: 'woodPulp',
-            count: 1,
-          },
-        ],
+            "itemId": "woodPulp",
+            "count": 1
+          }
+        ]
       },
       {
-        value: 'assembleCatRelicMosaic',
-        label: '拼接猫咪文物',
-        actionId: 'assembleCatRelicMosaic',
-        rewards: [
+        "value": "pearlCultivation",
+        "label": "培育珍珠",
+        "actionId": "pearlCultivation",
+        "rewards": [
           {
-            itemId: 'catStatue',
-            count: 1,
+            "itemId": "pearl",
+            "count": 1
           },
           {
-            itemId: 'moonlightBell',
-            count: 0.3,
+            "itemId": "moonPearl",
+            "count": 0.05
           },
+          {
+            "itemId": "blackPearl",
+            "count": 0.01
+          }
         ],
-        dependencies: [
+        "dependencies": [
           {
-            itemId: 'catAntiqueShard',
-            count: 5,
+            "itemId": "sand",
+            "count": 15
           },
           {
-            itemId: 'catHairball',
-            count: 20,
+            "itemId": "nutrientEssence",
+            "count": 10
+          }
+        ]
+      },
+      {
+        "value": "assembleCatRelicMosaic",
+        "label": "拼接猫咪文物",
+        "actionId": "assembleCatRelicMosaic",
+        "rewards": [
+          {
+            "itemId": "catStatue",
+            "count": 1
           },
+          {
+            "itemId": "moonlightBell",
+            "count": 0.3
+          }
         ],
+        "dependencies": [
+          {
+            "itemId": "catAntiqueShard",
+            "count": 5
+          },
+          {
+            "itemId": "catHairball",
+            "count": 20
+          }
+        ]
+      },
+      {
+        "value": "exploreNewArea",
+        "label": "探索",
+        "actionId": "exploreNewArea",
+        "rewards": [
+          {
+            "itemId": "treasureMap",
+            "count": 0.5
+          },
+          {
+            "itemId": "catHairball",
+            "count": 4
+          },
+          {
+            "itemId": "berry",
+            "count": 3.2
+          },
+          {
+            "itemId": "honey",
+            "count": 1.7999999999999998
+          }
+        ]
       },
       {
         value: 'treasureHunt',
@@ -803,62 +745,118 @@ export const DEFAULT_CRAFT_ITEMS: CraftItemCategory[] = [
         ],
         dependencies: [
           {
-            itemId: 'treasureMap',
-            count: 1,
-          },
-        ],
+            "itemId": "treasureMap",
+            "count": 1
+          }
+        ]
       },
       {
-        value: 'makeSimpleSalad',
-        label: '制作野草沙拉',
-        actionId: 'makeSimpleSalad',
-        rewards: [
+        "value": "sericulture",
+        "label": "养蚕",
+        "actionId": "sericulture",
+        "rewards": [
           {
-            itemId: 'simpleSalad',
-            count: 1,
-          },
-        ],
-        dependencies: [
-          {
-            itemId: 'herb',
-            count: 1,
-          },
-        ],
+            "itemId": "silk",
+            "count": 2
+          }
+        ]
       },
-    ],
+      {
+        "value": "farmingSheep",
+        "label": "照料绵羊",
+        "actionId": "farmingSheep",
+        "rewards": [
+          {
+            "itemId": "wool",
+            "count": 2
+          },
+          {
+            "itemId": "animalManure",
+            "count": 0.24
+          }
+        ]
+      },
+      {
+        "value": "farmingCow",
+        "label": "照料奶牛",
+        "actionId": "farmingCow",
+        "rewards": [
+          {
+            "itemId": "milk",
+            "count": 2
+          },
+          {
+            "itemId": "animalManure",
+            "count": 0.24
+          }
+        ]
+      },
+      {
+        "value": "farmingChicken",
+        "label": "照料小鸡仔",
+        "actionId": "farmingChicken",
+        "rewards": [
+          {
+            "itemId": "chickenEgg",
+            "count": 2
+          },
+          {
+            "itemId": "animalManure",
+            "count": 0.1
+          }
+        ]
+      },
+      {
+        "value": "makeSimpleSalad",
+        "label": "制作野草沙拉",
+        "actionId": "makeSimpleSalad",
+        "rewards": [
+          {
+            "itemId": "simpleSalad",
+            "count": 1
+          }
+        ],
+        "dependencies": [
+          {
+            "itemId": "herb",
+            "count": 1
+          }
+        ]
+      }
+    ]
   },
   {
-    value: '森林',
-    label: '森林',
-    items: [
+    "value": "森林",
+    "label": "森林",
+    "items": [
       {
-        value: 'dawnBlossom',
-        label: '晨露花',
-        actionId: 'dawnBlossom',
-        rewards: [
+        "value": "dawnBlossom",
+        "label": "晨露花",
+        "actionId": "dawnBlossom",
+        "rewards": [
           {
-            itemId: 'dawnBlossom',
-            count: 1,
-          },
-        ],
+            "itemId": "dawnBlossom",
+            "count": 1
+          }
+        ]
       },
       {
-        value: 'windBellHerb',
-        label: '风铃草',
-        actionId: 'windBellHerb',
-        rewards: [
+        "value": "windBellHerb",
+        "label": "风铃草",
+        "actionId": "windBellHerb",
+        "rewards": [
           {
-            itemId: 'windBellHerb',
-            count: 1,
-          },
-        ],
-      },
-    ],
+            "itemId": "windBellHerb",
+            "count": 1
+          }
+        ]
+      }
+    ]
   },
   {
-    value: '特殊物品',
-    label: '特殊物品',
-    items: [
+    "value": "特殊物品",
+    "label": "特殊物品",
+    "items": [
       {
         value: 'sewCashmereToy',
         label: '缝制毛绒玩具',
@@ -929,9 +927,34 @@ export const DEFAULT_CRAFT_ITEMS: CraftItemCategory[] = [
     ],
   },
   {
-    value: '提炼',
-    label: '提炼',
-    items: [
+    "value": "提炼",
+    "label": "提炼",
+    "items": [
+      {
+        "value": "refinePureEssence",
+        "label": "提炼纯净精华",
+        "actionId": "refinePureEssence",
+        "rewards": [
+          {
+            "itemId": "pureEssence",
+            "count": 1
+          }
+        ],
+        "dependencies": [
+          {
+            "itemId": "starDust",
+            "count": 10
+          },
+          {
+            "itemId": "luminousMoss",
+            "count": 2
+          },
+          {
+            "itemId": "amberSap",
+            "count": 1
+          }
+        ]
+      },
       {
         value: 'refineMoonlightEssence',
         label: '提炼月光精华',
@@ -1148,11 +1171,11 @@ export const DEFAULT_CRAFT_ITEMS: CraftItemCategory[] = [
         actionId: 'farmingRye',
         rewards: [
           {
-            itemId: 'rye',
-            count: 1,
-          },
-        ],
-      },
-    ],
-  },
-];
+            "itemId": "rye",
+            "count": 1
+          }
+        ]
+      }
+    ]
+  }
+]
