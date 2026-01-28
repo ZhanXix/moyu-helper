@@ -1,25 +1,30 @@
 /**
- * 百度统计集成
+ * 51.la 统计集成
  */
 
-declare global {
-  interface Window {
-    _hmt: any[];
-  }
-}
+declare const unsafeWindow: Window & { LA?: any };
 
 class Analytics {
-  private readonly BAIDU_ID = 'ca4e89cb823766ca0d2ae272aefa3398';
+  private readonly LA_ID = '3OqB1GxEyPx7V8kp';
+  private readonly LA_CK = '3OqB1GxEyPx7V8kp';
 
   init() {
-    window._hmt = window._hmt || [];
     const script = document.createElement('script');
-    script.src = `https://hm.baidu.com/hm.js?${this.BAIDU_ID}`;
+    script.charset = 'UTF-8';
+    script.id = 'LA_COLLECT';
+    script.src = '//sdk.51.la/js-sdk-pro.min.js';
+    script.onload = () => {
+      if (unsafeWindow.LA) {
+        unsafeWindow.LA.init({ id: this.LA_ID, ck: this.LA_CK, autoTrack: true });
+      }
+    };
     document.head.appendChild(script);
   }
 
   track(category: string, action: string, label?: string) {
-    window._hmt?.push(['_trackEvent', category, action, label]);
+    if (unsafeWindow.LA) {
+      unsafeWindow.LA.track(action, { category, label });
+    }
   }
 }
 
