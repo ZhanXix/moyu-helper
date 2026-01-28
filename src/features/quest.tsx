@@ -12,6 +12,7 @@ interface Quest {
   title: string;
   actionMainType: string;
   status: string;
+  rerollCount: number;
   target: {
     actionId: string;
     count: number;
@@ -20,32 +21,46 @@ interface Quest {
 }
 
 interface QuestManagerConfig {
-  excludedKeywords: string[];
-  requiredPrefixes: string[];
+  goldLimit: number;
+  selectedTasks: Record<string, Record<string, boolean>>;
 }
 
 class QuestManager {
   private config: QuestManagerConfig = {
-    excludedKeywords: [],
-    requiredPrefixes: [],
+    goldLimit: DEFAULT_CONFIG.QUEST_GOLD_LIMIT,
+    selectedTasks: {},
   };
 
   async init(): Promise<void> {
-    const prefix = await GM.getValue(STORAGE_KEYS.QUEST_REQUIRED_PREFIX, DEFAULT_CONFIG.QUEST_REQUIRED_PREFIX);
-    const keywords = await GM.getValue(STORAGE_KEYS.QUEST_EXCLUDED_KEYWORDS, DEFAULT_CONFIG.QUEST_EXCLUDED_KEYWORDS);
-    this.config.requiredPrefixes = prefix.split(',').map((k) => k.trim()).filter(Boolean);
-    this.config.excludedKeywords = keywords.split(',').map((k) => k.trim()).filter(Boolean);
+    const goldLimit = await GM.getValue(STORAGE_KEYS.QUEST_GOLD_LIMIT, DEFAULT_CONFIG.QUEST_GOLD_LIMIT);
+    const selectedTasks = await GM.getValue(
+      STORAGE_KEYS.QUEST_SELECTED_TASKS,
+      DEFAULT_CONFIG.QUEST_DEFAULT_SELECTED_TASKS,
+    );
+    this.config.goldLimit = goldLimit;
+    this.config.selectedTasks = selectedTasks;
   }
 
   private isValidQuest(quest: Quest): boolean {
-    const matchesPrefix = this.config.requiredPrefixes.length === 0 || 
-      this.config.requiredPrefixes.some((prefix) => quest.title.includes(prefix));
-    const hasExcludedKeyword = this.config.excludedKeywords.some((keyword) => quest.title.includes(keyword));
-    return matchesPrefix && !hasExcludedKeyword;
+    // 解析任务标题: "类型：任务名数量单位"
+    const titleParts = quest.title.match(/^(\S+)：([^0-9]+?)(\d+)(\D+)$/);
+    if (!titleParts) return false;
+
+    const category = titleParts[1].trim();
+    const subCategory = titleParts[2].trim();
+
+    // 检查是否在选中的任务列表中
+    if (this.config.selectedTasks[category]) {
+      return this.config.selectedTasks[category][subCategory] === true;
+    }
+
+    return false;
   }
 
   private async fetchQuests(): Promise<Quest[]> {
+    logger.debug('开始获取任务列表...');
     const res = await ws.sendAndListen('quest:list');
+    logger.debug('任务列表响应:', res);
     return res.payload.data || [];
   }
 
@@ -53,7 +68,7 @@ class QuestManager {
     const hasCompletedQuests = quests.some((q) => q.status !== 'PENDING');
     if (hasCompletedQuests) {
       await ws.send('quest:completeAll');
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise((r) => setTimeout(r, 2000));
       return this.fetchQuests();
     }
     return quests;
@@ -62,10 +77,18 @@ class QuestManager {
   private async rerollQuest(quest: Quest): Promise<Quest> {
     let current = quest;
     let attempts = 0;
-    const maxAttempts = 50; // 防止无限循环
+    const maxAttempts = 50;
 
     while (!this.isValidQuest(current) && attempts < maxAttempts) {
       attempts++;
+
+      // 检查金币限制
+      const goldAmount = (current.rerollCount + 1) * 250;
+      if (goldAmount >= this.config.goldLimit) {
+        logger.warn(`金币超过限制(${goldAmount} ≥ ${this.config.goldLimit})，停止刷新: ${current.title}`);
+        break;
+      }
+
       const res = await ws.sendAndListen('quest:reroll', { questUuid: current.uuid });
       const updated = res.payload?.data?.newQuest;
 
@@ -88,11 +111,20 @@ class QuestManager {
     const map = new Map<string, Quest>();
 
     quests.forEach((quest) => {
-      const id = quest.target.actionId;
-      const existing = map.get(id);
+      // 解析任务标题: "类型：任务名数量单位"
+      const titleParts = quest.title.match(/^(\S+)：([^0-9]+?)(\d+)(\D+)$/);
+      if (!titleParts) return;
 
+      const category = titleParts[1].trim().replace(' ', '');
+      const subCategory = titleParts[2].trim().replace(' ', '');
+      // 使用 类型-任务名 作为唯一键
+      const key = `${category}-${subCategory}`;
+
+      const existing = map.get(key);
+
+      // 保留 count 更大的任务
       if (!existing || quest.target.count > existing.target.count) {
-        map.set(id, quest);
+        map.set(key, quest);
       }
     });
 
@@ -112,6 +144,7 @@ class QuestManager {
         currentRepeat: 0,
         createTime: Date.now(),
       });
+      await new Promise((r) => setTimeout(r, 2000));
     }
 
     toast.success(`✅ 已添加 ${quests.length} 个任务到执行队列`);
@@ -121,6 +154,26 @@ class QuestManager {
 
   async refreshCards(): Promise<void> {
     await this.init();
+
+    // 首次运行提示
+    const isFirstRun = await GM.getValue(STORAGE_KEYS.QUEST_FIRST_RUN, true);
+    if (isFirstRun) {
+      return new Promise((resolve) => {
+        toast.confirm(
+          `<strong>任务自动刷新说明</strong><br><br>
+          • 自动提交已完成的任务<br>
+          • 刷新不符合条件的任务（按任务类型筛选）<br>
+          • 自动去重并添加到执行队列<br><br>
+          <small>可在设置中修改筛选条件</small>`,
+          async () => {
+            await GM.setValue(STORAGE_KEYS.QUEST_FIRST_RUN, false);
+            await this.executeRefresh();
+            resolve();
+          },
+        );
+      });
+    }
+
     await this.executeRefresh();
   }
 
@@ -153,6 +206,7 @@ class QuestManager {
       for (let i = 0; i < toReroll.length; i++) {
         progress.update(`[${i + 1}/${toReroll.length}] 刷新中: ${toReroll[i].title}`);
         await this.rerollQuest(toReroll[i]);
+        await new Promise((r) => setTimeout(r, 2000));
       }
 
       // 获取最终任务列表并执行
@@ -168,6 +222,18 @@ class QuestManager {
       progress.hide();
       toast.error('任务处理失败，请稍后重试');
     }
+  }
+
+  async setGoldLimit(limit: number): Promise<void> {
+    this.config.goldLimit = limit;
+    await GM.setValue(STORAGE_KEYS.QUEST_GOLD_LIMIT, limit);
+    logger.info(`任务刷新金币限制已设置为: ${limit}`);
+  }
+
+  async setSelectedTasks(tasks: Record<string, Record<string, boolean>>): Promise<void> {
+    this.config.selectedTasks = tasks;
+    await GM.setValue(STORAGE_KEYS.QUEST_SELECTED_TASKS, tasks);
+    logger.info('任务选择已更新');
   }
 }
 

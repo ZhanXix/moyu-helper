@@ -41,21 +41,24 @@ class SatietyManager {
 
       if (!satiety) return;
 
-      const threshold = await GM.getValue(STORAGE_KEYS.AUTO_USE_BERRY_THRESHOLD, DEFAULT_CONFIG.AUTO_USE_BERRY_THRESHOLD);
+      const threshold = await GM.getValue(
+        STORAGE_KEYS.AUTO_USE_BERRY_THRESHOLD,
+        DEFAULT_CONFIG.AUTO_USE_BERRY_THRESHOLD,
+      );
       const target = await GM.getValue(STORAGE_KEYS.AUTO_USE_BERRY_TARGET, DEFAULT_CONFIG.AUTO_USE_BERRY_TARGET);
       const currentSatiety = satiety.count;
 
       if (currentSatiety < threshold) {
         let remaining = target - currentSatiety;
         let totalUsed = 0;
-        
+
         while (remaining > 0) {
           const useAmount = Math.min(remaining, 100000);
           await ws.sendAndListen('effectAction:useItem', { itemId: this.foodType, multiple: useAmount });
           totalUsed += useAmount;
           remaining -= useAmount;
         }
-        
+
         const foodName = this.foodType === 'berry' ? '浆果' : this.foodType === 'fish' ? '鱼' : '豪华猫粮';
         logger.info(`当前饱食度: ${currentSatiety}, 已使用${foodName}: ${totalUsed}`);
         toast.success(`✅ 已使用 ${totalUsed} ${foodName}`);
