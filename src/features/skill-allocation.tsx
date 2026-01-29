@@ -3,7 +3,7 @@
  * 包含技能点分配管理器和面板
  * 
  * 2026/1/29 参照鱼类自动化养殖技术交流群文件 天赋加点2.js 重写 
- * 由于重置专精点的时候经常收不到响应，所以需要进入专精页面提取剩余技能点，无法在页面外使用该功能
+ * 由于重置专精点的时候经常收不到响应，所以需要进入专精页面提取剩余技能点，无法在页面外使用该功能 <- 待优化
  */
 
 import { render } from 'preact';
@@ -32,62 +32,32 @@ export const SPECIALTY_MAP: Record<string, string> = {
   fishing: '钓鱼',
 };
 
-export const NODE_NAME_MAP: Record<string, string> = {
-  l_efficiency_basics: '效率基础',
-  l_lucky_basics: '幸运',
-  l_mining_focus: '采矿专精',
-  l_mining_extraReward: '采矿额外产出',
-  l_mining_returnResource: '采矿返还消耗',
-  l_mining_extraExp: '采矿额外经验',
-  l_mysterious_focus: '炼金专精',
-  l_mysterious_extraReward: '炼金额外产出',
-  l_mysterious_returnResource: '炼金返还消耗',
-  l_mysterious_extraExp: '炼金额外经验',
-  l_collecting_focus: '采集专精',
-  l_collecting_extraReward: '采集额外产出',
-  l_collecting_returnResource: '采集返还消耗',
-  l_collecting_extraExp: '采集额外经验',
-  l_knowledge_focus: '自我提升专精',
-  l_knowledge_extraReward: '自我提升额外产出',
-  l_knowledge_returnResource: '自我提升返还消耗',
-  l_knowledge_extraExp: '自我提升额外经验',
-  l_forging_focus: '锻造专精',
-  l_forging_extraReward: '锻造额外产出',
-  l_forging_returnResource: '锻造返还消耗',
-  l_forging_extraExp: '锻造额外经验',
-  l_exploring_focus: '探索专精',
-  l_exploring_extraReward: '探索额外产出',
-  l_exploring_returnResource: '探索返还消耗',
-  l_exploring_extraExp: '探索额外经验',
-  l_manufacturing_focus: '制造专精',
-  l_manufacturing_extraReward: '制造额外产出',
-  l_manufacturing_returnResource: '制造返还消耗',
-  l_manufacturing_extraExp: '制造额外经验',
-  l_cooking_focus: '烹饪专精',
-  l_cooking_extraReward: '烹饪额外产出',
-  l_cooking_returnResource: '烹饪返还消耗',
-  l_cooking_extraExp: '烹饪额外经验',
-  l_farmingAnimal_focus: '养殖专精',
-  l_farmingAnimal_extraReward: '养殖额外产出',
-  l_farmingAnimal_returnResource: '养殖返还消耗',
-  l_farmingAnimal_extraExp: '养殖额外经验',
-  l_farmingPlant_focus: '种植专精',
-  l_farmingPlant_extraReward: '种植额外产出',
-  l_farmingPlant_returnResource: '种植返还消耗',
-  l_farmingPlant_extraExp: '种植额外经验',
-  l_sewing_focus: '缝纫专精',
-  l_sewing_extraReward: '缝纫额外产出',
-  l_sewing_returnResource: '缝纫返还消耗',
-  l_sewing_extraExp: '缝纫额外经验',
-  l_specialManufacture_focus: '特种制造专精',
-  l_specialManufacture_extraReward: '特种制造额外产出',
-  l_specialManufacture_returnResource: '特种制造返还消耗',
-  l_specialManufacture_extraExp: '特种制造额外经验',
-  l_fishing_focus: '钓鱼专精',
-  l_fishing_extraReward: '钓鱼额外产出',
-  l_fishing_returnResource: '钓鱼返还消耗',
-  l_fishing_extraExp: '钓鱼额外经验',
-};
+/**
+ * 根据节点ID生成完整的节点名称
+ */
+export function getNodeDisplayName(nodeId: string): string {
+  if (nodeId === 'l_efficiency_basics') return '效率基础';
+  if (nodeId === 'l_lucky_basics') return '幸运';
+
+  const specialty = nodeId.match(/l_([^_]+)_(.+)/);
+  if (specialty) {
+    const spec = specialty[1];
+    const type = specialty[2];
+    const specialtyName = SPECIALTY_MAP[spec] || spec;
+
+    const typeMap: Record<string, string> = {
+      focus: '专精',
+      extraReward: '额外产出',
+      returnResource: '返还消耗',
+      extraExp: '额外经验',
+    };
+
+    const typeName = typeMap[type] || type;
+    return `${specialtyName}${typeName}`;
+  }
+
+  return nodeId;
+}
 
 // ==================== 天赋节点定义 ====================
 
@@ -775,12 +745,12 @@ class SkillAllocationManager {
       // 等待一下，让用户看到"正在计算加点方案..."的提示
       await sleep(300);
 
-      // 显示第一个要加的节点
-      if (orderedNodes.length > 0) {
-        const firstNodeId = orderedNodes[0];
-        const firstNodeName = NODE_NAME_MAP[firstNodeId] || firstNodeId;
-        onProgress?.(totalPoints - totalUsedPoints, totalPoints, firstNodeName);
-      }
+  // 显示第一个要加的节点
+  if (orderedNodes.length > 0) {
+    const firstNodeId = orderedNodes[0];
+    const firstNodeName = getNodeDisplayName(firstNodeId);
+    onProgress?.(totalPoints - totalUsedPoints, totalPoints, firstNodeName);
+  }
 
       // 按照优先级顺序执行加点
       for (const nodeId of orderedNodes) {
@@ -821,7 +791,7 @@ class SkillAllocationManager {
           totalUsedPoints += batchUsedPoints;
           nodeCompletedUpgrades += successCount;
 
-          const nodeName = NODE_NAME_MAP[nodeId] || nodeId;
+          const nodeName = getNodeDisplayName(nodeId);
           onProgress?.(totalPoints - totalUsedPoints, totalPoints, nodeName);
 
           await sleep(500);
@@ -978,14 +948,14 @@ function SkillAllocationPanelContent() {
         luckyFirst,
         'life',
         (remaining, total, nodeId) => {
-          const nodeName = NODE_NAME_MAP[nodeId] || nodeId;
+          const nodeName = getNodeDisplayName(nodeId);
           setProgress(`剩余技能点: ${remaining}/${total}\n当前: ${nodeName}`);
         },
       );
 
       if (result) {
         const allocationDetails = Object.entries(result.allocation)
-          .map(([nodeId, level]) => `${NODE_NAME_MAP[nodeId] || nodeId}: ${level}`)
+          .map(([nodeId, level]) => `${getNodeDisplayName(nodeId)}: ${level}`)
           .join('\n');
         setProgress(
           `✅ 加点完成！\n\n已使用技能点：${result.summary.usedPoints}/${result.summary.totalPoints}\n\n${allocationDetails}`,
