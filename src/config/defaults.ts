@@ -125,6 +125,9 @@ export const STORAGE_KEYS = {
   SKILL_ALLOCATION_ENABLED: 'skill_allocation_enabled',
   QUEST_GOLD_LIMIT: 'quest_gold_limit',
   QUEST_SELECTED_TASKS: 'quest_selected_tasks',
+  SKILL_ALLOCATION_SPECIALTY: 'skill_allocation_specialty',
+  SKILL_ALLOCATION_STRATEGY: 'skill_allocation_strategy',
+  SKILL_ALLOCATION_LUCKY_FIRST: 'skill_allocation_lucky_first',
 } as const;
 
 /**
