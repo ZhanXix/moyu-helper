@@ -125,7 +125,6 @@ class CraftManager {
 
   async optimizePlan(plan: CraftStep[], targetActionId: string): Promise<CraftStep[]> {
     try {
-      const inventory = await dataCache.getAsync('inventory', true);
       const optimized: CraftStep[] = [];
       const resourceNeeds = new Map<string, number>();
 
@@ -140,7 +139,7 @@ class CraftManager {
         let count = step.count;
 
         if (step.actionId !== targetActionId) {
-          const stock = inventory[mainReward.itemId]?.count || 0;
+          const stock = await dataCache.getItemCountAsync(mainReward.itemId);
           const need = resourceNeeds.get(mainReward.itemId) || 0;
           const netNeed = Math.max(0, need - stock);
           count = Math.ceil(netNeed / mainReward.count);

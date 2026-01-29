@@ -5,7 +5,7 @@
 
 import { render } from 'preact';
 import { logger, toast, dataCache, ws } from '@/core';
-import type { PanelButton, Inventory } from '@/types';
+import type { PanelButton } from '@/types';
 import { DEFAULT_CONFIG, STORAGE_KEYS, DEFAULT_RESOURCES } from '@/config/defaults';
 import type { MonitorType, ResourceConfig, ResourceCategory } from '@/config/defaults';
 import { analytics } from '@/utils';
@@ -87,10 +87,13 @@ export function createResourceAlertHTML(
 
 // ==================== 资源监控器 ====================
 
+const BASE_RESOURCES = ['berry', 'fish', 'wood', 'stone', 'coal'] as const;
+
 class ResourceMonitor {
   private resources: Record<string, ResourceConfig>;
   private enabled = false;
   private autoBuyEnabled = false;
+  private nameToIdCache: Map<string, string> | null = null;
   private readonly storageKeys = {
     RESOURCES: STORAGE_KEYS.MONITORED_RESOURCES,
     ENABLED: STORAGE_KEYS.RESOURCE_MONITOR_ENABLED,
@@ -165,8 +168,7 @@ class ResourceMonitor {
     }
 
     try {
-      const inventory = await dataCache.getAsync('inventory', true);
-      await this.performCheck(inventory, true, persistent);
+      await this.performCheck(true, persistent);
       analytics.track('资源监控', '手动检查', '查看库存');
     } catch (error) {
       logger.error('获取库存数据失败', error);
@@ -174,23 +176,30 @@ class ResourceMonitor {
     }
   }
 
-  private async performCheck(inventory: Inventory, showAlert: boolean, persistent: boolean = true): Promise<void> {
+  private async performCheck(showAlert: boolean, persistent: boolean = true): Promise<void> {
     const gameResources = unsafeWindow.tAllGameResource;
     if (!gameResources) {
       logger.warn('游戏资源数据未加载');
       return;
     }
 
-    const problematicItems = this.findProblematicItems(inventory, gameResources);
+    this.buildNameToIdCache(gameResources);
+
+    let problematicItems = await this.findProblematicItems(gameResources);
 
     const hasBought = await this.autoBuyBaseResources(problematicItems);
 
-    let remainingItems = problematicItems;
     if (hasBought) {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      const updatedInventory = await dataCache.getAsync('inventory', true);
-      remainingItems = this.findProblematicItems(updatedInventory, gameResources);
+      problematicItems = await this.findProblematicItems(gameResources);
     }
+
+    const remainingItems = this.autoBuyEnabled
+      ? problematicItems.filter((item) => {
+          const id = this.nameToIdCache?.get(item.name);
+          return item.type !== 'insufficient' || !id || !BASE_RESOURCES.includes(id as any);
+        })
+      : problematicItems;
 
     const insufficientCount = remainingItems.filter((item) => item.type === 'insufficient').length;
     const excessCount = remainingItems.filter((item) => item.type === 'excess').length;
@@ -206,8 +215,9 @@ class ResourceMonitor {
     }
   }
 
-  private findProblematicItems(inventory: Inventory, gameResources: any): ResourceItem[] {
+  private async findProblematicItems(gameResources: any): Promise<ResourceItem[]> {
     const items: ResourceItem[] = [];
+    const inventory = await dataCache.getAsync('inventory');
 
     for (const [id, config] of Object.entries(this.resources)) {
       const count = inventory[id]?.count || 0;
@@ -226,26 +236,37 @@ class ResourceMonitor {
     return items;
   }
 
-  private async autoBuyBaseResources(problematicItems: ResourceItem[]): Promise<boolean> {
-    if (!this.autoBuyEnabled) return false;
+  private buildNameToIdCache(gameResources: any): void {
+    if (this.nameToIdCache) return;
+    this.nameToIdCache = new Map();
+    for (const [id, resource] of Object.entries(gameResources)) {
+      if (resource && typeof resource === 'object' && 'name' in resource && typeof resource.name === 'string') {
+        this.nameToIdCache.set(resource.name, id);
+      }
+    }
+  }
 
-    const baseResources = ['berry', 'fish', 'wood', 'stone', 'coal'];
-    const gameResources = unsafeWindow.tAllGameResource;
-    if (!gameResources) return false;
+  private async autoBuyBaseResources(problematicItems: ResourceItem[]): Promise<boolean> {
+    if (!this.autoBuyEnabled || !this.nameToIdCache) return false;
 
     let hasBought = false;
 
     for (const item of problematicItems) {
       if (item.type !== 'insufficient') continue;
-      const resourceId = Object.keys(gameResources).find((id) => gameResources[id]?.name === item.name);
-      if (!resourceId || !baseResources.includes(resourceId)) continue;
+      
+      const resourceId = this.nameToIdCache.get(item.name);
+      if (!resourceId || !BASE_RESOURCES.includes(resourceId as any)) continue;
 
       const needed = item.threshold - item.count;
       if (needed > 0) {
-        await ws.send('requestShopBuyResource', { id: resourceId, count: needed });
-        logger.info(`自动购买基础资源: ${item.name} x${needed}`);
-        analytics.track('资源监控', '自动购买', `${item.name}x${needed}`);
-        hasBought = true;
+        try {
+          await ws.send('requestShopBuyResource', { id: resourceId, count: needed });
+          logger.info(`自动购买基础资源: ${item.name} x${needed}`);
+          analytics.track('资源监控', '自动购买', `${item.name}x${needed}`);
+          hasBought = true;
+        } catch (error) {
+          logger.error(`购买 ${item.name} 失败`, error);
+        }
       }
     }
 
@@ -266,14 +287,13 @@ class ResourceMonitor {
   }
 
   private categorizeItems(items: ResourceItem[]): Array<{ name: string; items: ResourceItem[] }> {
-    const gameResources = unsafeWindow.tAllGameResource;
-    if (!gameResources) return [];
+    if (!this.nameToIdCache) return [];
 
     const result: Array<{ name: string; items: ResourceItem[] }> = [];
 
     for (const category of DEFAULT_RESOURCES) {
       const categoryItems = items.filter((item) => {
-        const itemId = Object.keys(gameResources).find((id) => gameResources[id]?.name === item.name);
+        const itemId = this.nameToIdCache!.get(item.name);
         return itemId && itemId in category.items;
       });
 

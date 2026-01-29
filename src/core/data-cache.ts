@@ -91,7 +91,7 @@ class DataCacheManager {
 
       // 同时更新库存缓存（避免额外的 requestInventoryInfo 请求）
       if (inventory) {
-        this.updateCache('inventory', inventory);
+        this.updateCache('inventory', this.filterInventory(inventory));
       }
 
       // 更新酒馆专家列表
@@ -102,7 +102,7 @@ class DataCacheManager {
 
     // 监听库存更新事件
     ws.on('dispatchInventoryInfo', (data) => {
-      const inventory = data.payload.data;
+      const inventory = this.filterInventory(data.payload.data);
       this.updateCache('inventory', inventory);
     });
 
@@ -131,6 +131,28 @@ class DataCacheManager {
   get<K extends CacheKey>(key: K): CacheMap[K] | null {
     const cache = this.caches[key];
     return cache.data;
+  }
+
+  /**
+   * 获取指定物品的库存数量
+   * @param itemId 物品 ID
+   * @returns 物品数量，如果不存在则返回 0
+   */
+  getItemCount(itemId: string): number {
+    const inventory = this.caches.inventory.data;
+    return inventory?.[itemId]?.count || 0;
+  }
+
+  /**
+   * 异步获取指定物品的库存数量
+   * @param itemId 物品 ID
+   * @param canRetry 是否允许超时后重试
+   * @param timeout 超时时间（毫秒），默认 30 秒
+   * @returns 物品数量的 Promise
+   */
+  async getItemCountAsync(itemId: string, canRetry: boolean = false, timeout: number = 30000): Promise<number> {
+    const inventory = await this.getAsync('inventory', canRetry, timeout);
+    return inventory[itemId]?.count || 0;
   }
 
   /**
@@ -226,6 +248,21 @@ class DataCacheManager {
       clearTimeout(request.timer);
       request.resolve(data);
     }
+  }
+
+  /**
+   * 过滤库存数据，去掉 count 为 0 的物品以减小缓存大小
+   * @param inventory 原始库存数据
+   * @returns 过滤后的库存数据
+   */
+  private filterInventory(inventory: Inventory): Inventory {
+    const filtered: Inventory = {};
+    for (const [itemId, item] of Object.entries(inventory)) {
+      if (item.count > 0) {
+        filtered[itemId] = item;
+      }
+    }
+    return filtered;
   }
 }
 
