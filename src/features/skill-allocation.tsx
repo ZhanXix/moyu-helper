@@ -3,7 +3,6 @@
  * 包含技能点分配管理器和面板
  * 
  * 2026/1/29 参照鱼类自动化养殖技术交流群文件 天赋加点2.js 重写 
- * 由于重置专精点的时候经常收不到响应，所以需要进入专精页面提取剩余技能点，无法在页面外使用该功能 <- 待优化
  */
 
 import { render } from 'preact';
@@ -602,7 +601,7 @@ class SkillAllocationManager {
 
   async reset(treeId: string = 'life'): Promise<SkillAllocationSummary> {
     logger.info(`重置技能点: ${treeId}`);
-    // 先发送重置消息，再等待 `skillTree:reset:success` 事件，超时后回退到从 DOM 读取
+    // 先发送重置消息，再等待 `skillTree:reset:success` 事件
     const timeoutMs = 10000;
 
     // 先准备监听器 promise
@@ -629,7 +628,7 @@ class SkillAllocationManager {
       try {
         const unsub = ws.once('skillTree:reset:success', (data) => {
           logger.warn('检测到延迟到达的重置响应', data);
-          toast.info('检测到延迟到达的重置响应，已记录日志');
+          // toast.info('检测到延迟到达的重置响应，已记录日志');
           unsub();
         });
         setTimeout(() => unsub(), 5000);
@@ -637,28 +636,13 @@ class SkillAllocationManager {
         logger.debug('延迟响应监听注册失败', e);
       }
 
-      // 回退：尝试从页面 DOM 中解析可用点数（参考天赋加点2.js 的做法）
-      const derived = this.deriveSummaryFromDOM();
-      if (derived) {
-        this.currentSummary = derived;
-        logger.warn('使用 DOM 回退获取到可用点数', this.currentSummary);
-        return this.currentSummary;
-      }
-
       throw err;
     }
 
-    // 如果响应包含 summary，则直接使用；否则也回退到 DOM
+    // 如果响应包含 summary，则直接使用
     if (response?.payload?.data?.summary) {
       this.currentSummary = response.payload.data.summary as SkillAllocationSummary;
       logger.success('技能点重置成功', this.currentSummary);
-      return this.currentSummary;
-    }
-
-    const derived2 = this.deriveSummaryFromDOM();
-    if (derived2) {
-      this.currentSummary = derived2;
-      logger.warn('重置未返回 summary，使用 DOM 回退获取', this.currentSummary);
       return this.currentSummary;
     }
 
@@ -709,11 +693,32 @@ class SkillAllocationManager {
     luckyFirst: boolean = false,
     treeId: string = 'life',
     onProgress?: (remaining: number, total: number, nodeId: string) => void,
+    onResetComplete?: () => void,
   ): Promise<AllocationResult | null> {
     logger.info(`开始自动加点: 策略=${strategy}, 专精=${specialty}, 幸运优先=${luckyFirst}`);
 
     try {
+      // 先获取技能树摘要,等待响应后再进行后续操作
+      logger.info('获取技能树摘要...');
+      const timeoutMs = 10000;
+      const summaryPromise = ws.sendAndListen('skillTree:summary', { treeId }, 'skillTree:summary:success');
+      let summaryResponse: any;
+      try {
+        summaryResponse = await Promise.race([
+          summaryPromise,
+          new Promise((_, reject) => setTimeout(() => reject(new Error('获取摘要超时')), timeoutMs)),
+        ]);
+        logger.debug('技能树摘要响应:', summaryResponse);
+      } catch (err: any) {
+        logger.error('获取技能树摘要超时或失败', err);
+        throw new Error('获取技能树摘要失败');
+      }
+
       let summary = await this.reset(treeId);
+
+      // reset 完成后调用回调
+      onResetComplete?.();
+
       const totalPoints = summary.available;
 
       // 计算加点方案
@@ -745,12 +750,12 @@ class SkillAllocationManager {
       // 等待一下，让用户看到"正在计算加点方案..."的提示
       await sleep(300);
 
-  // 显示第一个要加的节点
-  if (orderedNodes.length > 0) {
-    const firstNodeId = orderedNodes[0];
-    const firstNodeName = getNodeDisplayName(firstNodeId);
-    onProgress?.(totalPoints - totalUsedPoints, totalPoints, firstNodeName);
-  }
+      // 显示第一个要加的节点
+      if (orderedNodes.length > 0) {
+        const firstNodeId = orderedNodes[0];
+        const firstNodeName = getNodeDisplayName(firstNodeId);
+        onProgress?.(totalPoints - totalUsedPoints, totalPoints, firstNodeName);
+      }
 
       // 按照优先级顺序执行加点
       for (const nodeId of orderedNodes) {
@@ -762,7 +767,6 @@ class SkillAllocationManager {
         while (nodeCompletedUpgrades < targetLevel) {
           const batchSize = Math.min(targetLevel - nodeCompletedUpgrades, 5);
           let successCount = 0;
-          let batchUsedPoints = 0;
 
           for (let i = 0; i < batchSize; i++) {
             try {
@@ -781,20 +785,18 @@ class SkillAllocationManager {
 
               await this.allocate(nodeId, treeId);
               successCount++;
-              batchUsedPoints += cost;
+              totalUsedPoints += cost;
+
+              const nodeName = getNodeDisplayName(nodeId);
+              onProgress?.(totalPoints - totalUsedPoints, totalPoints, nodeName);
+
               await sleep(200);
             } catch (error) {
               logger.warn(`加点失败: ${nodeId}`, error);
             }
           }
 
-          totalUsedPoints += batchUsedPoints;
           nodeCompletedUpgrades += successCount;
-
-          const nodeName = getNodeDisplayName(nodeId);
-          onProgress?.(totalPoints - totalUsedPoints, totalPoints, nodeName);
-
-          await sleep(500);
         }
       }
 
@@ -811,60 +813,17 @@ class SkillAllocationManager {
   getCurrentSummary(): SkillAllocationSummary | null {
     return this.currentSummary;
   }
-
-  // 从页面 DOM 中尝试解析当前生活专精的可用点数，返回一个最小的 SkillAllocationSummary 或 null
-  private deriveSummaryFromDOM(): SkillAllocationSummary | null {
-    try {
-      const allToolbars = document.querySelectorAll('.toolbar');
-      let toolbar: Element | null = null;
-      allToolbars.forEach((tb) => {
-        const title = tb.querySelector('h3');
-        if (title && title.textContent && title.textContent.includes('生活')) {
-          toolbar = tb;
-        }
-      });
-
-      if (!toolbar) return null;
-
-      const small = (toolbar as Element).querySelector('small');
-      if (!small || !small.textContent) return null;
-
-      const text = small.textContent.trim();
-      const match = text.match(/(\d[\d,]*)/);
-      const available = match ? parseInt(match[1].replace(/,/g, '')) : NaN;
-      if (isNaN(available)) return null;
-
-      const summary: SkillAllocationSummary = {
-        treeId: 'life',
-        totalEarned: 0,
-        totalSpent: 0,
-        effectiveSpent: 0,
-        available,
-        nodeLevels: {},
-        canAllocate: {},
-        unmetReasons: {},
-      };
-
-      return summary;
-    } catch (err) {
-      logger.debug('从 DOM 解析可用点数失败', err);
-      return null;
-    }
-  }
 }
 
 export const skillAllocationManager = new SkillAllocationManager();
 
 // ==================== 技能分配面板 ====================
 
-function SkillAllocationPanelContent() {
+function SkillAllocationPanelContent({ onClose }: { onClose: () => void }) {
   const [specialty, setSpecialty] = useState('knowledge');
   const [strategy, setStrategy] = useState('产出优先');
   const [luckyFirst, setLuckyFirst] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [progress, setProgress] = useState('');
-  const [showProgress, setShowProgress] = useState(false);
-  
+
 
   // 加载保存的设置
   useEffect(() => {
@@ -933,12 +892,13 @@ function SkillAllocationPanelContent() {
   ];
 
   const handleAllocate = async () => {
-    if (isProcessing) return;
 
+    // 点击后立即关闭窗口
+    onClose();
+
+    // 异步执行加点操作,通过持续显示的 toast 显示进度
     try {
-      setIsProcessing(true);
-      setShowProgress(true);
-      setProgress('正在计算加点方案...');
+      const progressToast = toast.progress('正在获取专精点数信息...');
 
       await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -949,32 +909,30 @@ function SkillAllocationPanelContent() {
         'life',
         (remaining, total, nodeId) => {
           const nodeName = getNodeDisplayName(nodeId);
-          setProgress(`剩余技能点: ${remaining}/${total}\n当前: ${nodeName}`);
+          progressToast.update(`生活专精加点中！当前: ${nodeName}（剩余技能点: ${remaining}/${total}）`);
+        },
+        () => {
+          progressToast.update('正在计算加点方案...');
         },
       );
 
       if (result) {
         const allocationDetails = Object.entries(result.allocation)
           .map(([nodeId, level]) => `${getNodeDisplayName(nodeId)}: ${level}`)
-          .join('\n');
-        setProgress(
-          `✅ 加点完成！\n\n已使用技能点：${result.summary.usedPoints}/${result.summary.totalPoints}\n\n${allocationDetails}`,
+          .join('<br>');
+        progressToast.hide();
+        toast.success(
+          `✅ 加点完成！<br><br>已使用技能点：${result.summary.usedPoints}/${result.summary.totalPoints}<br><br>💡加点详情:<br>${allocationDetails}`,
+          10000,
         );
       } else {
-        setProgress('❌ 加点失败');
+        progressToast.hide();
+        toast.error('❌ 加点失败');
       }
-
-      toast.success('技能点分配完成');
-
-      // 加点完成后等待1秒再恢复按钮
-      await new Promise((resolve) => setTimeout(resolve, 1000));
     } catch (error) {
       logger.error('加点失败', error);
       const msg = error instanceof Error ? error.message : '未知错误';
-      setProgress(`❌ 加点失败: ${msg}`);
       toast.error(`加点失败: ${msg}`);
-    } finally {
-      setIsProcessing(false);
     }
   };
 
@@ -992,7 +950,8 @@ function SkillAllocationPanelContent() {
         <Checkbox checked={luckyFirst} onChange={handleLuckyFirstChange} label="幸运优先" style={{ fontWeight: '600' }} />
       </FormGroup>
 
-      {isInSkillTreePage() ? (
+      {/* 原有的页面检查逻辑已注释,因为现在通过 WebSocket 通信不需要进入专精页面 */}
+      {/* {isInSkillTreePage() ? (
         <Button onClick={handleAllocate} disabled={isProcessing}>
           {isProcessing ? '处理中...' : '开始加点'}
         </Button>
@@ -1000,9 +959,12 @@ function SkillAllocationPanelContent() {
         <Button disabled style={{ opacity: 0.6, cursor: 'not-allowed' }}>
           请先进入生活专精页面
         </Button>
-      )}
+      )} */}
 
-      {showProgress && (
+      <Button onClick={handleAllocate}>开始加点</Button>
+
+      {/* 原有的进度显示区域已注释,改用顶部 toast 提示 */}
+      {/* {showProgress && (
         <div
           style={{
             padding: '12px',
@@ -1017,17 +979,17 @@ function SkillAllocationPanelContent() {
         >
           {progress}
         </div>
-      )}
+      )} */}
     </>
   );
 }
 
-// 检查是否在专精页面
-const isInSkillTreePage = (): boolean => {
-  const skillTreeTab = document.getElementById('tab-skillTree');
-  if (!skillTreeTab) return false;
-  return skillTreeTab.classList.contains('is-active');
-};
+// 检查是否在专精页面(已注释,当前不再使用)
+// const isInSkillTreePage = (): boolean => {
+//   const skillTreeTab = document.getElementById('tab-skillTree');
+//   if (!skillTreeTab) return false;
+//   return skillTreeTab.classList.contains('is-active');
+// };
 
 export class SkillAllocationPanel {
   private container: HTMLDivElement | null = null;
@@ -1045,7 +1007,7 @@ export class SkillAllocationPanel {
 
     render(
       <Modal isOpen={true} onClose={() => this.hide()} title="🌳 生活专精加点" >
-        <SkillAllocationPanelContent />
+        <SkillAllocationPanelContent onClose={() => this.hide()} />
       </Modal>,
       this.container,
     );
