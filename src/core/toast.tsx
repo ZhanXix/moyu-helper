@@ -83,10 +83,25 @@ function ToastComponent({ type, message, timeout, onClose, onConfirm }: ToastPro
   );
 }
 
-function ProgressToastComponent({ message }: { message: string }) {
+function ProgressToastComponent({
+  message,
+  showClose,
+  onClose,
+}: {
+  message: string;
+  showClose: boolean;
+  onClose?: () => void;
+}) {
   return (
     <div className="mh-toast info">
       <div className="mh-toast-msg">{message}</div>
+      <button
+        className="mh-toast-close"
+        onClick={onClose}
+        style={{ opacity: showClose ? 1 : 0, pointerEvents: showClose ? 'auto' : 'none' }}
+      >
+        ×
+      </button>
     </div>
   );
 }
@@ -122,7 +137,10 @@ class Toast {
       }
 
       const toast = document.createElement('div');
-      render(<ToastComponent type={type} message={msg} timeout={timeout} onClose={() => this.remove(toast, resolve)} />, toast);
+      render(
+        <ToastComponent type={type} message={msg} timeout={timeout} onClose={() => this.remove(toast, resolve)} />,
+        toast,
+      );
 
       container.appendChild(toast);
       this.toastCount++;
@@ -146,23 +164,41 @@ class Toast {
   progress(msg: string): ProgressToast {
     const container = this.getContainer();
     const toast = document.createElement('div');
-    render(<ProgressToastComponent message={msg} />, toast);
+    let isHidden = false;
+    let currentShowClose = false;
+    let timer: number | null = null;
 
+    const resetTimer = () => {
+      if (timer) clearTimeout(timer);
+      currentShowClose = false;
+      render(<ProgressToastComponent message={msg} showClose={currentShowClose} onClose={() => handleHide()} />, toast);
+      timer = window.setTimeout(() => {
+        currentShowClose = true;
+        render(<ProgressToastComponent message={msg} showClose={currentShowClose} onClose={() => handleHide()} />, toast);
+      }, 10000);
+    };
+
+    const handleHide = () => {
+      if (!isHidden) {
+        isHidden = true;
+        if (timer) clearTimeout(timer);
+        this.remove(toast);
+      }
+    };
+
+    render(<ProgressToastComponent message={msg} showClose={currentShowClose} onClose={() => handleHide()} />, toast);
     container.appendChild(toast);
     this.toastCount++;
-
-    let isHidden = false;
+    resetTimer();
 
     return {
       update: (newMsg: string) => {
-        if (!isHidden) render(<ProgressToastComponent message={newMsg} />, toast);
-      },
-      hide: () => {
         if (!isHidden) {
-          isHidden = true;
-          this.remove(toast);
+          msg = newMsg;
+          resetTimer();
         }
       },
+      hide: handleHide,
     };
   }
 
@@ -170,8 +206,14 @@ class Toast {
     const container = this.getContainer();
     const toast = document.createElement('div');
     render(
-      <ToastComponent type="confirm" message={msg} timeout={timeout || false} onClose={() => this.remove(toast)} onConfirm={onConfirm} />,
-      toast
+      <ToastComponent
+        type="confirm"
+        message={msg}
+        timeout={timeout || false}
+        onClose={() => this.remove(toast)}
+        onConfirm={onConfirm}
+      />,
+      toast,
     );
 
     container.appendChild(toast);

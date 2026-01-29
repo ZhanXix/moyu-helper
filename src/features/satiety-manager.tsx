@@ -36,17 +36,13 @@ class SatietyManager {
     this.isChecking = true;
 
     try {
-      const inventory = await dataCache.getAsync('inventory');
-      const satiety = inventory['__satiety'];
-
-      if (!satiety) return;
+      const currentSatiety = await dataCache.getItemCountAsync('__satiety');
 
       const threshold = await GM.getValue(
         STORAGE_KEYS.AUTO_USE_BERRY_THRESHOLD,
         DEFAULT_CONFIG.AUTO_USE_BERRY_THRESHOLD,
       );
       const target = await GM.getValue(STORAGE_KEYS.AUTO_USE_BERRY_TARGET, DEFAULT_CONFIG.AUTO_USE_BERRY_TARGET);
-      const currentSatiety = satiety.count;
 
       if (currentSatiety < threshold) {
         let remaining = target - currentSatiety;

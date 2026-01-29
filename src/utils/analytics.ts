@@ -2,6 +2,8 @@
  * 51.la 统计集成
  */
 
+import { isDev } from '@/config/env';
+
 declare const unsafeWindow: Window & { LA?: any };
 
 class Analytics {
@@ -9,6 +11,7 @@ class Analytics {
   private readonly LA_CK = '3OqB1GxEyPx7V8kp';
 
   init() {
+    if (isDev) return;
     const script = document.createElement('script');
     script.charset = 'UTF-8';
     script.id = 'LA_COLLECT';
@@ -22,6 +25,7 @@ class Analytics {
   }
 
   track(category: string, action: string, label?: string) {
+    if (isDev) return;
     if (unsafeWindow.LA) {
       unsafeWindow.LA.track(action, { category, label });
     }

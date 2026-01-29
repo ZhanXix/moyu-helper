@@ -81,18 +81,26 @@ class WebSocketMonitor {
     return this.on(event, wrapper);
   }
 
-  awaitOnce(event: string | string[]): Promise<WebSocketMessage> {
-    return new Promise((resolve) => {
-      this.once(event, (data) => {
+  awaitOnce(event: string | string[], timeout = 10000): Promise<WebSocketMessage> {
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => {
+        unsubscribe();
+        reject(new Error(`等待事件 [${Array.isArray(event) ? event.join(', ') : event}] 超时`));
+      }, timeout);
+
+      const unsubscribe = this.once(event, (data) => {
+        clearTimeout(timer);
         resolve(data);
       });
     });
   }
 
-  async sendAndListen(sendEvent: string, data?: any): Promise<WebSocketMessage>;
-  async sendAndListen(sendEvent: string, data: any, listenEvent: string | string[]): Promise<WebSocketMessage>;
-  async sendAndListen(sendEvent: string, data: any = {}, listenEvent?: string | string[]): Promise<WebSocketMessage> {
-    const promise = this.awaitOnce(listenEvent ?? `${sendEvent}:success`);
+  async sendAndListen(sendEvent: string, data?: any, timeout?: number): Promise<WebSocketMessage>;
+  async sendAndListen(sendEvent: string, data: any, listenEvent: string | string[], timeout?: number): Promise<WebSocketMessage>;
+  async sendAndListen(sendEvent: string, data: any = {}, listenEventOrTimeout?: string | string[] | number, timeout?: number): Promise<WebSocketMessage> {
+    const listenEvent = typeof listenEventOrTimeout === 'number' ? `${sendEvent}:success` : (listenEventOrTimeout ?? `${sendEvent}:success`);
+    const actualTimeout = typeof listenEventOrTimeout === 'number' ? listenEventOrTimeout : timeout;
+    const promise = this.awaitOnce(listenEvent, actualTimeout);
     await this.send(sendEvent, data);
     return promise;
   }
@@ -102,10 +110,17 @@ class WebSocketMonitor {
     data: any,
     eventName: string,
     condition: (eventData: any) => boolean,
+    timeout = 10000,
   ): Promise<void> {
-    const promise = new Promise<void>((resolve) => {
+    const promise = new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        eventBus.off(eventName, handler);
+        reject(new Error(`等待事件 [${eventName}] 超时`));
+      }, timeout);
+
       const handler = (eventData: any) => {
         if (condition(eventData)) {
+          clearTimeout(timer);
           eventBus.off(eventName, handler);
           resolve();
         }
@@ -179,8 +194,9 @@ class WebSocketMonitor {
       }
 
       const ws = this;
-      const wrapped = (event: MessageEvent) => {
-        self.handleReceive(event.data);
+      const wrapped = (event: Event) => {
+        const msgEvent = event as MessageEvent;
+        self.handleReceive(msgEvent.data);
         if (typeof listener === 'function') {
           listener.call(ws, event);
         } else {

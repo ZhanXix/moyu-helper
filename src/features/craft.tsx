@@ -24,6 +24,15 @@ class CraftManager {
   private running = false;
   private progressToast: any = null;
 
+  private ensureProgressToast(message: string): any {
+    if (!this.progressToast) {
+      this.progressToast = toast.progress(message);
+    } else {
+      this.progressToast.update(message);
+    }
+    return this.progressToast;
+  }
+
   getCraftCategories(): CraftItemCategory[] {
     return this.categories;
   }
@@ -116,7 +125,6 @@ class CraftManager {
 
   async optimizePlan(plan: CraftStep[], targetActionId: string): Promise<CraftStep[]> {
     try {
-      const inventory = await dataCache.getAsync('inventory', true);
       const optimized: CraftStep[] = [];
       const resourceNeeds = new Map<string, number>();
 
@@ -131,7 +139,7 @@ class CraftManager {
         let count = step.count;
 
         if (step.actionId !== targetActionId) {
-          const stock = inventory[mainReward.itemId]?.count || 0;
+          const stock = await dataCache.getItemCountAsync(mainReward.itemId);
           const need = resourceNeeds.get(mainReward.itemId) || 0;
           const netNeed = Math.max(0, need - stock);
           count = Math.ceil(netNeed / mainReward.count);
@@ -161,10 +169,10 @@ class CraftManager {
     let actionQueue = await dataCache.getAsync('actionQueue');
     if (actionQueue.length > 0) {
       const totalCount = actionQueue.length;
-      this.progressToast = toast.progress(`清空任务队列 [0/${totalCount}]`);
+      this.ensureProgressToast(`正在清空任务 (0/${totalCount})`);
       for (let i = actionQueue.length - 1; i >= 0; i--) {
         const expectedLength = actionQueue.length - 1;
-        this.progressToast?.update(`清空任务队列 [${totalCount - i}/${totalCount}]`);
+        this.progressToast.update(`正在清空任务 (${totalCount - i}/${totalCount})`);
         await ws.sendAndWaitEvent(
           'removeTaskFromQueue',
           i,
@@ -182,9 +190,9 @@ class CraftManager {
 
     if (existingTasks.length > 0) {
       const totalCount = existingTasks.length;
-      this.progressToast = toast.progress(`清空 ${kittyName} 任务 [0/${totalCount}]`);
+      this.ensureProgressToast(`正在清空 ${kittyName} 的任务 (0/${totalCount})`);
       for (let i = existingTasks.length - 1; i >= 0; i--) {
-        this.progressToast?.update(`清空 ${kittyName} 任务 [${totalCount - i}/${totalCount}]`);
+        this.progressToast.update(`正在清空 ${kittyName} 的任务 (${totalCount - i}/${totalCount})`);
         await ws.sendAndListen('kitty:removeTask', { kittyUuid, index: i });
       }
     }
@@ -201,11 +209,15 @@ class CraftManager {
     try {
       toast.info('正在计算制造计划...');
       const plan = this.buildPlan(actionId, count);
-      if (plan.length === 0) return;
+      if (plan.length === 0) {
+        this.progressToast?.hide();
+        return;
+      }
 
       const optimized = await this.optimizePlan(plan, actionId);
       if (optimized.length === 0) {
         toast.info('无需制造');
+        this.progressToast?.hide();
         return;
       }
 
@@ -213,13 +225,11 @@ class CraftManager {
         await this.clearPlayerTasks();
       }
 
-      if (!this.progressToast) {
-        this.progressToast = toast.progress('准备制造...');
-      }
+      this.ensureProgressToast('正在添加制造任务...');
 
       for (let i = 0; i < optimized.length; i++) {
         const step = optimized[i];
-        this.progressToast?.update(`[${i + 1}/${optimized.length}] ${step.name} ×${step.count}`);
+        this.progressToast.update(`正在添加 ${step.name} ×${step.count} (${i + 1}/${optimized.length})`);
 
         await ws.sendAndWaitEvent(
           'addTaskToQueue',
@@ -234,7 +244,7 @@ class CraftManager {
         );
       }
 
-      this.progressToast?.update('添加默认任务...');
+      this.progressToast.update('正在添加默认任务...');
       const defaultTasks = await GM.getValue('player_default_tasks', ['reading', 'cutBamboo']);
       for (const taskId of defaultTasks) {
         if (taskId) {
@@ -252,7 +262,7 @@ class CraftManager {
         }
       }
 
-      this.progressToast?.hide();
+      this.progressToast.hide();
       toast.success(`已提交 ${optimized.length} 个制造任务`);
       analytics.track('制造', '玩家制造', `${optimized.length}个任务`);
     } catch (error) {
@@ -281,16 +291,20 @@ class CraftManager {
 
     try {
       const plan = this.buildPlan(actionId, count);
-      if (plan.length === 0) return;
+      if (plan.length === 0) {
+        this.progressToast?.hide();
+        return;
+      }
 
       const optimized = await this.optimizePlan(plan, actionId);
       if (optimized.length === 0) {
         toast.info(`🐱 ${kittyName} 无需制造`);
+        this.progressToast?.hide();
         return;
       }
 
       const tasks = optimized.slice(0, 2);
-      this.progressToast = toast.progress(`🐱 ${kittyName} 准备制造...`);
+      this.ensureProgressToast(`正在为 ${kittyName} 安排制造任务...`);
 
       if (clearTasks) {
         await this.clearKittyTasks(kittyUuid, kittyName);
@@ -298,7 +312,7 @@ class CraftManager {
 
       for (let i = 0; i < tasks.length; i++) {
         const step = tasks[i];
-        this.progressToast?.update(`🐱 ${kittyName} [${i + 1}/${tasks.length}] ${step.name} ×${step.count}`);
+        this.progressToast?.update(`正在为 ${kittyName} 添加 ${step.name} ×${step.count} (${i + 1}/${tasks.length})`);
 
         await ws.sendAndListen('kitty:addTask', {
           kittyUuid,
@@ -436,14 +450,20 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
   };
 
   const handleCraft = async () => {
-    if (!selectedItem) return;
+    if (!selectedItem) {
+      toast.warning('请先选择要制造的物品');
+      return;
+    }
     onClose();
     analytics.track('界面', '打开制造面板', '开始制造');
     await craftManager.craftWithDependencies(selectedItem, count, clearTasks);
   };
 
   const handleKittyCraft = async (kittyUuid: string, kittyName: string, kittyIndex: number) => {
-    if (!selectedItem) return;
+    if (!selectedItem) {
+      toast.warning('请先选择要制造的物品');
+      return;
+    }
     onClose();
     analytics.track('界面', '打开制造面板', `猫咪制造-${kittyName}`);
     await craftManager.craftWithKitty(kittyUuid, kittyName, kittyIndex, selectedItem, count, clearTasks);
@@ -518,7 +538,7 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
       <FormGroup label="制造数量">
         <Input type="number" value={count} onChange={(v) => setCount(parseInt(v) || 1)} min={1} step={1} />
         <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-          {[10, 200, 1000, 10000].map((value) => (
+          {[10, 100, 1000, 10000].map((value) => (
             <Button
               key={value}
               variant="secondary"
@@ -556,7 +576,7 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
         </div>
       )}
 
-      <Card title="🗑️ 清空任务" style={{ marginBottom: '16px' }}>
+      <Card title="🗑️ 清空任务" style={{ margin: '16px 0' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button variant="secondary" onClick={handleClearPlayerTasks} style={{ flex: 1, padding: '8px 12px' }}>
             主角色
