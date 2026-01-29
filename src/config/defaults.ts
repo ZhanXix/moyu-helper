@@ -98,6 +98,15 @@ export const DEFAULT_CONFIG: Readonly<AppConfig> = {
 };
 
 /**
+ * 技能分配默认配置
+ */
+export const DEFAULT_SKILL_ALLOCATION = {
+  SPECIALTY: 'knowledge', // 默认专精：自我提升
+  STRATEGY: '产出优先', // 默认策略：产出优先
+  LUCKY_FIRST: true, // 默认幸运优先
+};
+
+/**
  * 存储键名常量
  */
 export const STORAGE_KEYS = {
@@ -122,6 +131,9 @@ export const STORAGE_KEYS = {
   QUEST_GOLD_LIMIT: 'quest_gold_limit',
   QUEST_SELECTED_TASKS: 'quest_selected_tasks',
   QUEST_FIRST_RUN: 'quest_first_run',
+  SKILL_ALLOCATION_SPECIALTY: 'skill_allocation_specialty',
+  SKILL_ALLOCATION_STRATEGY: 'skill_allocation_strategy',
+  SKILL_ALLOCATION_LUCKY_FIRST: 'skill_allocation_lucky_first',
 } as const;
 
 /**
