@@ -40,8 +40,6 @@ export interface AppConfig {
   AUTO_USE_BERRY_THRESHOLD: number;
   AUTO_USE_BERRY_TARGET: number;
   AUTO_USE_BERRY_FOOD_TYPE: FoodType;
-  QUEST_REQUIRED_PREFIX: string;
-  QUEST_EXCLUDED_KEYWORDS: string;
   QUEST_GOLD_LIMIT: number;
   QUEST_DEFAULT_SELECTED_TASKS: Record<string, Record<string, boolean>>;
   QUEST_MANAGER_ENABLED: boolean;
@@ -115,8 +113,6 @@ export const STORAGE_KEYS = {
   AUTO_USE_BERRY_THRESHOLD: 'auto_use_berry_threshold',
   AUTO_USE_BERRY_TARGET: 'auto_use_berry_target',
   AUTO_USE_BERRY_FOOD_TYPE: 'auto_use_berry_food_type',
-  QUEST_REQUIRED_PREFIX: 'quest_required_prefix',
-  QUEST_EXCLUDED_KEYWORDS: 'quest_excluded_keywords',
   QUEST_MANAGER_ENABLED: 'quest_manager_enabled',
   BATTLE_GUARD_ENABLED: 'battle_guard_enabled',
   QUALITY_TOOLBAR_ENABLED: 'quality_toolbar_enabled',
@@ -125,6 +121,7 @@ export const STORAGE_KEYS = {
   SKILL_ALLOCATION_ENABLED: 'skill_allocation_enabled',
   QUEST_GOLD_LIMIT: 'quest_gold_limit',
   QUEST_SELECTED_TASKS: 'quest_selected_tasks',
+  QUEST_FIRST_RUN: 'quest_first_run',
 } as const;
 
 /**

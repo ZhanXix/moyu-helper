@@ -38,46 +38,38 @@ export interface AllocationResult {
 // ==================== 常量 ====================
 
 export const SPECIALTY_MAP: Record<string, string> = {
-  knowledge: '知识',
-  craft: '制作',
-  brew: '酿造',
-  sew: '缝制',
+  knowledge: '自我提升',
+  mining: '采矿',
+  mysterious: '炼金',
+  collecting: '采集',
+  forging: '锻造',
+  exploring: '探索',
+  manufacturing: '制造',
   cook: '烹饪',
-  boil: '熬制',
+  farmingAnimal: '养殖',
   plant: '种植',
+  sewing: '缝纫',
+  specialManufacture: '特殊制造',
+  fishing: '钓鱼',
+};
+
+const SUFFIX_MAP: Record<string, string> = {
+  focus: '专精',
+  extraReward: '额外产出',
+  returnResource: '返还材料',
+  extraExp: '额外经验',
 };
 
 export const NODE_NAME_MAP: Record<string, string> = {
   l_efficiency_basics: '效率基础',
   l_lucky_basics: '幸运基础',
-  l_knowledge_focus: '知识专精',
-  l_knowledge_extraReward: '知识额外产出',
-  l_knowledge_returnResource: '知识返还材料',
-  l_knowledge_extraExp: '知识额外经验',
-  l_craft_focus: '制作专精',
-  l_craft_extraReward: '制作额外产出',
-  l_craft_returnResource: '制作返还材料',
-  l_craft_extraExp: '制作额外经验',
-  l_brew_focus: '酿造专精',
-  l_brew_extraReward: '酿造额外产出',
-  l_brew_returnResource: '酿造返还材料',
-  l_brew_extraExp: '酿造额外经验',
-  l_sew_focus: '缝制专精',
-  l_sew_extraReward: '缝制额外产出',
-  l_sew_returnResource: '缝制返还材料',
-  l_sew_extraExp: '缝制额外经验',
-  l_cook_focus: '烹饪专精',
-  l_cook_extraReward: '烹饪额外产出',
-  l_cook_returnResource: '烹饪返还材料',
-  l_cook_extraExp: '烹饪额外经验',
-  l_boil_focus: '熬制专精',
-  l_boil_extraReward: '熬制额外产出',
-  l_boil_returnResource: '熬制返还材料',
-  l_boil_extraExp: '熬制额外经验',
-  l_plant_focus: '种植专精',
-  l_plant_extraReward: '种植额外产出',
-  l_plant_returnResource: '种植返还材料',
-  l_plant_extraExp: '种植额外经验',
+  ...Object.entries(SPECIALTY_MAP)
+    .flatMap(([key, name]) =>
+      Object.entries(SUFFIX_MAP).map(([suffix, suffixName]) => ({
+        [`l_${key}_${suffix}`]: `${name}${suffixName}`,
+      })),
+    )
+    .reduce((acc, obj) => ({ ...acc, ...obj }), {}),
 };
 
 // ==================== 技能分配管理器 ====================
@@ -95,7 +87,7 @@ class SkillAllocationManager {
     if (response.payload?.data?.summary) {
       this.currentSummary = response.payload.data.summary;
       logger.success('技能点重置成功', this.currentSummary);
-      return this.currentSummary;
+      return this.currentSummary!;
     }
 
     throw new Error('重置失败: 未返回有效数据');
@@ -106,7 +98,7 @@ class SkillAllocationManager {
 
     if (response.payload?.data?.summary) {
       this.currentSummary = response.payload.data.summary;
-      return this.currentSummary;
+      return this.currentSummary!;
     }
 
     throw new Error('加点失败: 未返回有效数据');
