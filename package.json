@@ -9,6 +9,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "tf": "cd scripts && node transform-data.js",
+    "ex": "cd scripts && node extract-monster-essence.js",
     "format": "prettier --write \"src/**/*.{ts,js,json}\"",
     "lint": "eslint src",
     "lint:fix": "eslint src --fix",

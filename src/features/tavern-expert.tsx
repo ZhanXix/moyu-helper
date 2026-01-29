@@ -66,15 +66,15 @@ class TavernExpertManager {
   getButtonText(): string {
     try {
       const tavern: TavernExpert[] | null = dataCache.get('tavern');
-      if (!tavern) return '🐱 强化专家';
+      if (!tavern) return '⚒️ 强化专家';
 
       const enhanceExpert = tavern.find((expert) => expert.type === 'enhanceExpert');
 
-      if (!enhanceExpert) return '🐱 启用强化专家';
-      if (enhanceExpert.state === 'WORKING') return '🐱 暂停强化专家';
-      return '🐱 恢复强化专家';
+      if (!enhanceExpert) return '⚒️ 启用强化';
+      if (enhanceExpert.state === 'WORKING') return '⚒️ 暂停强化';
+      return '⚒️ 恢复强化';
     } catch {
-      return '🐱 强化专家';
+      return '⚒️ 强化专家';
     }
   }
 }

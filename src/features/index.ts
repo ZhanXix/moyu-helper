@@ -9,3 +9,4 @@ export * from './craft.tsx';
 export * from './skill-allocation.tsx';
 export * from './battle-guard.tsx';
 export * from './tavern-expert.tsx';
+export * from './quick-alchemy.tsx';

@@ -10,6 +10,7 @@ interface CheckboxProps {
   style?: JSX.CSSProperties;
   className?: string;
   disabled?: boolean;
+  onClick?: (e: Event) => void;
 }
 
 const CONTAINER_STYLE: JSX.CSSProperties = {
@@ -34,11 +35,17 @@ const CHECKBOX_STYLE: JSX.CSSProperties = {
   backgroundColor: '#fff',
 };
 
-export function Checkbox({ checked, onChange, label, style = {}, className = '', disabled = false }: CheckboxProps) {
+export function Checkbox({ checked, onChange, label, style = {}, className = '', disabled = false, onClick }: CheckboxProps) {
   const handleChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
     if (onChange) {
       onChange(target.checked);
+    }
+  };
+
+  const handleClick = (e: Event) => {
+    if (onClick) {
+      onClick(e);
     }
   };
 
@@ -62,6 +69,7 @@ export function Checkbox({ checked, onChange, label, style = {}, className = '',
         opacity: disabled ? 0.5 : 1,
         ...style,
       }}
+      onClick={handleClick}
     >
       <input type="checkbox" style={checkboxStyle} checked={checked} onChange={handleChange} disabled={disabled} />
       {label && <span>{label}</span>}

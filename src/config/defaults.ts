@@ -48,6 +48,7 @@ export interface AppConfig {
   TAVERN_EXPERT_ENABLED: boolean;
   CRAFT_PANEL_ENABLED: boolean;
   SKILL_ALLOCATION_ENABLED: boolean;
+  QUICK_ALCHEMY_ENABLED: boolean;
 }
 
 /**
@@ -95,6 +96,7 @@ export const DEFAULT_CONFIG: Readonly<AppConfig> = {
   TAVERN_EXPERT_ENABLED: false, // 默认关闭酒馆专家
   CRAFT_PANEL_ENABLED: false, // 默认关闭物品制造
   SKILL_ALLOCATION_ENABLED: false, // 默认关闭技能加点
+  QUICK_ALCHEMY_ENABLED: false, // 默认关闭快速炼金
 };
 
 /**
@@ -134,6 +136,7 @@ export const STORAGE_KEYS = {
   SKILL_ALLOCATION_SPECIALTY: 'skill_allocation_specialty',
   SKILL_ALLOCATION_STRATEGY: 'skill_allocation_strategy',
   SKILL_ALLOCATION_LUCKY_FIRST: 'skill_allocation_lucky_first',
+  QUICK_ALCHEMY_ENABLED: 'quick_alchemy_enabled',
 } as const;
 
 /**

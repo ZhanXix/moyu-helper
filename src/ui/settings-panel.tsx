@@ -55,6 +55,7 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
   const [tavernExpertEnabled, setTavernExpertEnabled] = useState(DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED);
   const [craftPanelEnabled, setCraftPanelEnabled] = useState(DEFAULT_CONFIG.CRAFT_PANEL_ENABLED);
   const [skillAllocationEnabled, setSkillAllocationEnabled] = useState(DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED);
+  const [quickAlchemyEnabled, setQuickAlchemyEnabled] = useState(DEFAULT_CONFIG.QUICK_ALCHEMY_ENABLED);
 
   // 加载初始数据
   useEffect(() => {
@@ -101,6 +102,18 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         STORAGE_KEYS.SKILL_ALLOCATION_ENABLED,
         DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED,
       );
+      const loadedQuickAlchemyEnabled = await GM.getValue(
+        STORAGE_KEYS.QUICK_ALCHEMY_ENABLED,
+        DEFAULT_CONFIG.QUICK_ALCHEMY_ENABLED,
+      );
+      const loadedMonitorEnabled = await GM.getValue(
+        STORAGE_KEYS.RESOURCE_MONITOR_ENABLED,
+        DEFAULT_CONFIG.RESOURCE_MONITOR_ENABLED,
+      );
+      const loadedAutoBuyEnabled = await GM.getValue(
+        STORAGE_KEYS.AUTO_BUY_BASE_RESOURCES,
+        DEFAULT_CONFIG.AUTO_BUY_BASE_RESOURCES,
+      );
 
       setBatchSize(loadedBatchSize);
       setTaskInterval(loadedTaskInterval);
@@ -117,6 +130,9 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
       setTavernExpertEnabled(loadedTavernExpertEnabled);
       setCraftPanelEnabled(loadedCraftPanelEnabled);
       setSkillAllocationEnabled(loadedSkillAllocationEnabled);
+      setQuickAlchemyEnabled(loadedQuickAlchemyEnabled);
+      setMonitorEnabled(loadedMonitorEnabled);
+      setAutoBuyEnabled(loadedAutoBuyEnabled);
 
       if (resourceMonitor) {
         const enabled = resourceMonitor.isEnabled();
@@ -180,6 +196,9 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
     await GM.setValue(STORAGE_KEYS.TAVERN_EXPERT_ENABLED, tavernExpertEnabled);
     await GM.setValue(STORAGE_KEYS.CRAFT_PANEL_ENABLED, craftPanelEnabled);
     await GM.setValue(STORAGE_KEYS.SKILL_ALLOCATION_ENABLED, skillAllocationEnabled);
+    await GM.setValue(STORAGE_KEYS.QUICK_ALCHEMY_ENABLED, quickAlchemyEnabled);
+    await GM.setValue(STORAGE_KEYS.RESOURCE_MONITOR_ENABLED, monitorEnabled);
+    await GM.setValue(STORAGE_KEYS.AUTO_BUY_BASE_RESOURCES, autoBuyEnabled);
 
     taskQueue.setBatchSize(batchSize);
     taskQueue.setInterval(taskInterval);
@@ -238,6 +257,7 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
     await GM.setValue(STORAGE_KEYS.TAVERN_EXPERT_ENABLED, DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED);
     await GM.setValue(STORAGE_KEYS.CRAFT_PANEL_ENABLED, DEFAULT_CONFIG.CRAFT_PANEL_ENABLED);
     await GM.setValue(STORAGE_KEYS.SKILL_ALLOCATION_ENABLED, DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED);
+    await GM.setValue(STORAGE_KEYS.QUICK_ALCHEMY_ENABLED, DEFAULT_CONFIG.QUICK_ALCHEMY_ENABLED);
 
     logger.setMinLevel(DEFAULT_CONFIG.LOG_LEVEL);
     taskQueue.setBatchSize(DEFAULT_CONFIG.QUEST_BATCH_SIZE);
@@ -271,6 +291,9 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         </Row>
         <Row>
           <Checkbox checked={tavernExpertEnabled} onChange={setTavernExpertEnabled} label="酒馆专家 - 自动刷新酒馆任务" />
+        </Row>
+        <Row>
+          <Checkbox checked={quickAlchemyEnabled} onChange={setQuickAlchemyEnabled} label="快速炼金 - 快速炼制战利品精华" />
         </Row>
         <Row>
           <Checkbox checked={battleGuardEnabled} onChange={setBattleGuardEnabled} label="战斗防护 - 血量过低自动逃跑" />

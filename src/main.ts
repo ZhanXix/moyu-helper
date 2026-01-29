@@ -11,6 +11,7 @@ import type { PanelButton } from './types';
 import { FloatingPanel, settingsPanel } from './ui';
 import { CraftPanel } from './features/craft';
 import { SkillAllocationPanel } from './features/skill-allocation';
+import { AlchemyPanel } from './features/quick-alchemy';
 import { logger, ws, dataCache, toast } from './core';
 import {
   questManager,
@@ -37,6 +38,7 @@ interface AppModules {
   settings: typeof settingsPanel;
   craftPanel: CraftPanel;
   skillAllocationPanel: SkillAllocationPanel;
+  alchemyPanel: AlchemyPanel;
 }
 
 const app: AppModules = {
@@ -48,6 +50,7 @@ const app: AppModules = {
   settings: settingsPanel,
   craftPanel: new CraftPanel(),
   skillAllocationPanel: new SkillAllocationPanel(),
+  alchemyPanel: new AlchemyPanel(),
 };
 
 /**
@@ -94,6 +97,10 @@ const getMenuButtons = async (): Promise<PanelButton[]> => {
     STORAGE_KEYS.TAVERN_EXPERT_ENABLED,
     DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED,
   );
+  const quickAlchemyEnabled = await GM.getValue(
+    STORAGE_KEYS.QUICK_ALCHEMY_ENABLED,
+    DEFAULT_CONFIG.QUICK_ALCHEMY_ENABLED,
+  );
 
   // 技能加点
   if (skillAllocationEnabled) {
@@ -119,6 +126,15 @@ const getMenuButtons = async (): Promise<PanelButton[]> => {
       text: '🔨 物品制造',
       onClick: () => app.craftPanel.show(),
       order: 1,
+    });
+  }
+
+  // 快速炼金
+  if (quickAlchemyEnabled) {
+    buttons.push({
+      text: '⚗️ 快速炼金',
+      onClick: () => app.alchemyPanel.show(),
+      order: 5,
     });
   }
 
