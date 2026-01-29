@@ -40,8 +40,6 @@ export interface AppConfig {
   AUTO_USE_BERRY_THRESHOLD: number;
   AUTO_USE_BERRY_TARGET: number;
   AUTO_USE_BERRY_FOOD_TYPE: FoodType;
-  QUEST_REQUIRED_PREFIX: string;
-  QUEST_EXCLUDED_KEYWORDS: string;
   QUEST_GOLD_LIMIT: number;
   QUEST_DEFAULT_SELECTED_TASKS: Record<string, Record<string, boolean>>;
   QUEST_MANAGER_ENABLED: boolean;
@@ -97,6 +95,15 @@ export const DEFAULT_CONFIG: Readonly<AppConfig> = {
   TAVERN_EXPERT_ENABLED: false, // 默认关闭酒馆专家
   CRAFT_PANEL_ENABLED: false, // 默认关闭物品制造
   SKILL_ALLOCATION_ENABLED: false, // 默认关闭技能加点
+};
+
+/**
+ * 技能分配默认配置
+ */
+export const DEFAULT_SKILL_ALLOCATION = {
+  SPECIALTY: 'knowledge', // 默认专精：自我提升
+  STRATEGY: '产出优先', // 默认策略：产出优先
+  LUCKY_FIRST: true, // 默认幸运优先
 };
 
 /**

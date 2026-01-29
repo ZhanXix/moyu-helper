@@ -8,37 +8,11 @@
 
 import { render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
-import { STORAGE_KEYS } from '@/config/defaults';
+import { STORAGE_KEYS, DEFAULT_SKILL_ALLOCATION } from '@/config/defaults';
+import type { SkillAllocationSummary, AllocationResult } from '@/types/features';
 import { ws, logger, toast } from '@/core';
 import { sleep, analytics } from '@/utils';
 import { Modal, FormGroup, Select, Checkbox, Button } from '@/ui/components';
-
-// ==================== 类型定义 ====================
-
-export interface SkillAllocationSummary {
-  treeId: string;
-  totalEarned: number;
-  totalSpent: number;
-  effectiveSpent: number;
-  available: number;
-  nodeLevels: Record<string, number>;
-  canAllocate: Record<string, boolean>;
-  unmetReasons: Record<string, string[]>;
-}
-
-export interface AllocationResult {
-  allocation: Record<string, number>;
-  summary: {
-    totalPoints: number;
-    usedPoints: number;
-    remainingPoints: number;
-    totalEfficiency: string;
-    expBoost: string;
-    returnChance: string;
-    extraRewardChance: string;
-    luckyLevel: number;
-  };
-}
 
 // ==================== 常量 ====================
 
@@ -926,9 +900,19 @@ function SkillAllocationPanelContent() {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const loadedSpecialty = await GM.getValue(STORAGE_KEYS.SKILL_ALLOCATION_SPECIALTY, 'knowledge');
-        const loadedStrategy = await GM.getValue(STORAGE_KEYS.SKILL_ALLOCATION_STRATEGY, '产出优先');
-        const loadedLuckyFirst = await GM.getValue(STORAGE_KEYS.SKILL_ALLOCATION_LUCKY_FIRST, true);
+        const loadedSpecialty = await GM.getValue<string>(
+          STORAGE_KEYS.SKILL_ALLOCATION_SPECIALTY,
+          DEFAULT_SKILL_ALLOCATION.SPECIALTY,
+        );
+        const loadedStrategy = await GM.getValue<string>(
+          STORAGE_KEYS.SKILL_ALLOCATION_STRATEGY,
+          DEFAULT_SKILL_ALLOCATION.STRATEGY,
+        );
+        const loadedLuckyFirst = await GM.getValue<boolean>(
+          STORAGE_KEYS.SKILL_ALLOCATION_LUCKY_FIRST,
+          DEFAULT_SKILL_ALLOCATION.LUCKY_FIRST,
+        );
+
         setSpecialty(loadedSpecialty);
         setStrategy(loadedStrategy);
         setLuckyFirst(loadedLuckyFirst);

@@ -17,6 +17,7 @@ export interface SkillAllocationSummary {
 }
 
 export interface AllocationResult {
+  allocation: Record<string, number>;
   summary: {
     totalPoints: number;
     usedPoints: number;
