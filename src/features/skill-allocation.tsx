@@ -28,7 +28,7 @@ export const SPECIALTY_MAP: Record<string, string> = {
   farmingAnimal: '养殖',
   farmingPlant: '种植',
   sewing: '缝纫',
-  specialManufacture: '特种制造',
+  specialManufacture: '特殊制造',
   fishing: '钓鱼',
 };
 
@@ -1044,7 +1044,7 @@ export class SkillAllocationPanel {
     }
 
     render(
-      <Modal isOpen={true} onClose={() => this.hide()} title="🌳 生活专精加点" contentStyle={{ paddingBottom: 0 }}>
+      <Modal isOpen={true} onClose={() => this.hide()} title="🌳 生活专精加点" >
         <SkillAllocationPanelContent />
       </Modal>,
       this.container,
