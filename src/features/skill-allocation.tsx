@@ -7,7 +7,7 @@
 
 import { render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
-import { STORAGE_KEYS, DEFAULT_SKILL_ALLOCATION } from '@/config/defaults';
+import { appConfig } from '@/config/gm-settings';
 import type { SkillAllocationSummary, AllocationResult } from '@/types/features';
 import { ws, logger, toast } from '@/core';
 import { sleep, analytics } from '@/utils';
@@ -829,22 +829,9 @@ function SkillAllocationPanelContent({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const loadedSpecialty = await GM.getValue<string>(
-          STORAGE_KEYS.SKILL_ALLOCATION_SPECIALTY,
-          DEFAULT_SKILL_ALLOCATION.SPECIALTY,
-        );
-        const loadedStrategy = await GM.getValue<string>(
-          STORAGE_KEYS.SKILL_ALLOCATION_STRATEGY,
-          DEFAULT_SKILL_ALLOCATION.STRATEGY,
-        );
-        const loadedLuckyFirst = await GM.getValue<boolean>(
-          STORAGE_KEYS.SKILL_ALLOCATION_LUCKY_FIRST,
-          DEFAULT_SKILL_ALLOCATION.LUCKY_FIRST,
-        );
-
-        setSpecialty(loadedSpecialty);
-        setStrategy(loadedStrategy);
-        setLuckyFirst(loadedLuckyFirst);
+        setSpecialty(await appConfig.SKILL_ALLOCATION_SPECIALTY.get());
+        setStrategy(await appConfig.SKILL_ALLOCATION_STRATEGY.get());
+        setLuckyFirst(await appConfig.SKILL_ALLOCATION_LUCKY_FIRST.get());
       } catch (error) {
         logger.warn('加载设置失败', error);
       }
@@ -855,7 +842,7 @@ function SkillAllocationPanelContent({ onClose }: { onClose: () => void }) {
   const handleSpecialtyChange = async (value: string) => {
     setSpecialty(value);
     try {
-      await GM.setValue(STORAGE_KEYS.SKILL_ALLOCATION_SPECIALTY, value);
+      await appConfig.SKILL_ALLOCATION_SPECIALTY.set(value);
     } catch (error) {
       logger.warn('保存设置失败: specialty', error);
     }
@@ -864,7 +851,7 @@ function SkillAllocationPanelContent({ onClose }: { onClose: () => void }) {
   const handleStrategyChange = async (value: string) => {
     setStrategy(value);
     try {
-      await GM.setValue(STORAGE_KEYS.SKILL_ALLOCATION_STRATEGY, value);
+      await appConfig.SKILL_ALLOCATION_STRATEGY.set(value);
     } catch (error) {
       logger.warn('保存设置失败: strategy', error);
     }
@@ -873,7 +860,7 @@ function SkillAllocationPanelContent({ onClose }: { onClose: () => void }) {
   const handleLuckyFirstChange = async (value: boolean) => {
     setLuckyFirst(value);
     try {
-      await GM.setValue(STORAGE_KEYS.SKILL_ALLOCATION_LUCKY_FIRST, value);
+      await appConfig.SKILL_ALLOCATION_LUCKY_FIRST.set(value);
     } catch (error) {
       logger.warn('保存设置失败: luckyFirst', error);
     }

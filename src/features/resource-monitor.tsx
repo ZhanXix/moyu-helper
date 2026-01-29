@@ -6,8 +6,9 @@
 import { render } from 'preact';
 import { logger, toast, dataCache, ws } from '@/core';
 import type { PanelButton } from '@/types';
-import { DEFAULT_CONFIG, STORAGE_KEYS, DEFAULT_RESOURCES } from '@/config/defaults';
+import { DEFAULT_RESOURCES } from '@/config/defaults';
 import type { MonitorType, ResourceConfig, ResourceCategory } from '@/config/defaults';
+import { appConfig } from '@/config/gm-settings';
 import { analytics } from '@/utils';
 
 // ==================== 类型定义 ====================
@@ -94,11 +95,6 @@ class ResourceMonitor {
   private enabled = false;
   private autoBuyEnabled = false;
   private nameToIdCache: Map<string, string> | null = null;
-  private readonly storageKeys = {
-    RESOURCES: STORAGE_KEYS.MONITORED_RESOURCES,
-    ENABLED: STORAGE_KEYS.RESOURCE_MONITOR_ENABLED,
-    AUTO_BUY: STORAGE_KEYS.AUTO_BUY_BASE_RESOURCES,
-  };
 
   constructor() {
     this.resources = this.flattenCategories(DEFAULT_RESOURCES);
@@ -107,8 +103,8 @@ class ResourceMonitor {
 
   private async init(): Promise<void> {
     try {
-      this.enabled = await GM.getValue(this.storageKeys.ENABLED, DEFAULT_CONFIG.RESOURCE_MONITOR_ENABLED);
-      this.autoBuyEnabled = await GM.getValue(this.storageKeys.AUTO_BUY, DEFAULT_CONFIG.AUTO_BUY_BASE_RESOURCES);
+      this.enabled = await appConfig.RESOURCE_MONITOR_ENABLED.get();
+      this.autoBuyEnabled = await appConfig.AUTO_BUY_BASE_RESOURCES.get();
       this.resources = await this.loadResources();
       logger.success('资源监控器初始化完成');
     } catch (error) {
@@ -121,17 +117,21 @@ class ResourceMonitor {
   }
 
   private async loadResources(): Promise<Record<string, ResourceConfig>> {
-    const saved = await GM.getValue(this.storageKeys.RESOURCES, null);
-    if (!saved) return this.flattenCategories(DEFAULT_RESOURCES);
+    const saved = await appConfig.MONITORED_RESOURCES.get();
+    if (!saved || saved === '{}') return this.flattenCategories(DEFAULT_RESOURCES);
 
     try {
-      const savedData = JSON.parse(saved);
+      const savedData = typeof saved === 'string' ? JSON.parse(saved) : saved;
+      if (typeof savedData !== 'object' || Object.keys(savedData).length === 0) {
+        return this.flattenCategories(DEFAULT_RESOURCES);
+      }
+
       const defaults = this.flattenCategories(DEFAULT_RESOURCES);
 
       if (this.hasConfigChanged(savedData, defaults)) {
         logger.info('检测到默认配置变更，合并新资源项');
         const merged = this.mergeResources(savedData, defaults);
-        await GM.setValue(this.storageKeys.RESOURCES, JSON.stringify(merged));
+        await appConfig.MONITORED_RESOURCES.set(JSON.stringify(merged));
         return merged;
       }
 
@@ -338,7 +338,7 @@ class ResourceMonitor {
 
   async setMonitoredResources(resources: Record<string, ResourceConfig>): Promise<void> {
     this.resources = resources;
-    await GM.setValue(this.storageKeys.RESOURCES, JSON.stringify(resources));
+    await appConfig.MONITORED_RESOURCES.set(JSON.stringify(resources));
     logger.info('资源配置已更新');
   }
 
@@ -354,7 +354,7 @@ class ResourceMonitor {
     if (this.enabled === enabled) return;
 
     this.enabled = enabled;
-    await GM.setValue(this.storageKeys.ENABLED, enabled);
+    await appConfig.RESOURCE_MONITOR_ENABLED.set(enabled);
     logger.info(`资源监控已${enabled ? '启用' : '禁用'}`);
 
     window.dispatchEvent(new Event('settings-updated'));
@@ -364,7 +364,7 @@ class ResourceMonitor {
     if (this.autoBuyEnabled === enabled) return;
 
     this.autoBuyEnabled = enabled;
-    await GM.setValue(this.storageKeys.AUTO_BUY, enabled);
+    await appConfig.AUTO_BUY_BASE_RESOURCES.set(enabled);
     logger.info(`自动购买基础资源已${enabled ? '启用' : '禁用'}`);
   }
 }

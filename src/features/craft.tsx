@@ -10,6 +10,7 @@ import { logger, toast, ws, dataCache } from '@/core';
 import type { CraftItem, CraftItemCategory } from '@/types';
 import { Modal, Card, FormGroup, Select, Input, Checkbox, Button, Row } from '@/ui/components';
 import { analytics } from '@/utils';
+import { appConfig } from '@/config/gm-settings';
 
 interface CraftStep {
   name: string;
@@ -245,7 +246,7 @@ class CraftManager {
       }
 
       this.progressToast.update('正在添加默认任务...');
-      const defaultTasks = await GM.getValue('player_default_tasks', ['reading', 'cutBamboo']);
+      const defaultTasks = await appConfig.PLAYER_DEFAULT_TASKS.get();
       for (const taskId of defaultTasks) {
         if (taskId) {
           await ws.sendAndWaitEvent(
@@ -353,15 +354,18 @@ class CraftManager {
   }
 
   async getKittyDefaultTask(kittyIndex: number): Promise<string | null> {
-    const defaultKittyTasks: Record<number, string> = { 0: 'exploreNewArea', 1: 'pearlCultivation' };
-    const tasks = await GM.getValue('kitty_default_tasks', defaultKittyTasks);
-    return tasks[kittyIndex] || null;
+    const tasks = await appConfig.KITTY_DEFAULT_TASKS.get();
+    return tasks[kittyIndex] ?? null;
   }
 
   async setKittyDefaultTask(kittyIndex: number, actionId: string): Promise<void> {
-    const tasks = await GM.getValue('kitty_default_tasks', {});
-    tasks[kittyIndex] = actionId;
-    await GM.setValue('kitty_default_tasks', tasks);
+    const tasks = await appConfig.KITTY_DEFAULT_TASKS.get();
+    if (actionId) {
+      tasks[kittyIndex] = actionId;
+    } else {
+      delete tasks[kittyIndex];
+    }
+    await appConfig.KITTY_DEFAULT_TASKS.set(tasks);
   }
 }
 
@@ -379,11 +383,8 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
   const [clearTasks, setClearTasks] = useState(true);
   const [preview, setPreview] = useState('请选择物品');
   const [kitties, setKitties] = useState<any[]>([]);
-  const [playerDefaultTasks, setPlayerDefaultTasks] = useState<string[]>(['reading', 'cutBamboo']);
-  const [kittyDefaultTasks, setKittyDefaultTasks] = useState<Record<number, string>>({
-    0: 'exploreNewArea',
-    1: 'pearlCultivation',
-  });
+  const [playerDefaultTasks, setPlayerDefaultTasks] = useState<string[]>(appConfig.PLAYER_DEFAULT_TASKS.defaultValue);
+  const [kittyDefaultTasks, setKittyDefaultTasks] = useState<Record<number, string>>({});
 
   const itemOptions = craftManager.getCraftCategories().map((category) => ({
     label: category.label,
@@ -403,11 +404,8 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
         setKitties([]);
       }
 
-      const savedPlayerTasks = await GM.getValue('player_default_tasks', ['reading', 'cutBamboo']);
-      const savedKittyTasks = await GM.getValue('kitty_default_tasks', {
-        0: 'exploreNewArea',
-        1: 'pearlCultivation',
-      });
+      const savedPlayerTasks = await appConfig.PLAYER_DEFAULT_TASKS.get();
+      const savedKittyTasks = await appConfig.KITTY_DEFAULT_TASKS.get();
 
       setPlayerDefaultTasks(savedPlayerTasks);
       setKittyDefaultTasks(savedKittyTasks);
@@ -470,7 +468,7 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
     const newTasks = [...playerDefaultTasks];
     newTasks[index] = value;
     setPlayerDefaultTasks(newTasks);
-    await GM.setValue('player_default_tasks', newTasks);
+    await appConfig.PLAYER_DEFAULT_TASKS.set(newTasks);
   };
 
   const handleKittyDefaultTaskChange = async (kittyIndex: number, actionId: string) => {
@@ -481,7 +479,7 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
       delete newTasks[kittyIndex];
     }
     setKittyDefaultTasks(newTasks);
-    await GM.setValue('kitty_default_tasks', newTasks);
+    await appConfig.KITTY_DEFAULT_TASKS.set(newTasks);
   };
 
   const actionOptions = craftManager.getCraftCategories().map((category) => ({

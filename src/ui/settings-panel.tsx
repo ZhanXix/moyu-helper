@@ -12,7 +12,8 @@ import { render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import type { resourceMonitor } from '@/features/resource-monitor';
 import type { satietyManager } from '@/features/satiety-manager';
-import { DEFAULT_CONFIG, STORAGE_KEYS, type FoodType, QUEST_TASK_TYPES } from '@/config/defaults';
+import { type FoodType, QUEST_TASK_TYPES } from '@/config/defaults';
+import { appConfig } from '@/config/gm-settings';
 import { logger, toast } from '@/core';
 import { taskQueue } from '@/utils/task-queue';
 import { Modal, Card, Row, Input, Checkbox, Button, Select, Section } from './components';
@@ -34,127 +35,34 @@ interface SettingsPanelProps {
 }
 
 function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: SettingsPanelProps) {
-  const [batchSize, setBatchSize] = useState(DEFAULT_CONFIG.QUEST_BATCH_SIZE);
-  const [taskInterval, setTaskInterval] = useState(DEFAULT_CONFIG.TASK_INTERVAL);
-  const [batchDelay, setBatchDelay] = useState(DEFAULT_CONFIG.BATCH_DELAY);
-  const [logLevel, setLogLevel] = useState(DEFAULT_CONFIG.LOG_LEVEL);
-  const [monitorEnabled, setMonitorEnabled] = useState(DEFAULT_CONFIG.RESOURCE_MONITOR_ENABLED);
-  const [autoBuyEnabled, setAutoBuyEnabled] = useState(DEFAULT_CONFIG.AUTO_BUY_BASE_RESOURCES);
-  const [autoBerryEnabled, setAutoBerryEnabled] = useState(DEFAULT_CONFIG.AUTO_USE_BERRY_ENABLED);
+  const [settings, setSettings] = useState<Record<string, any> | null>(null);
   const [resourceCategories, setResourceCategories] = useState<ResourceCategory[]>([]);
-  const [berryThreshold, setBerryThreshold] = useState(DEFAULT_CONFIG.AUTO_USE_BERRY_THRESHOLD);
-  const [berryTarget, setBerryTarget] = useState(DEFAULT_CONFIG.AUTO_USE_BERRY_TARGET);
-  const [berryFoodType, setBerryFoodType] = useState<FoodType>(DEFAULT_CONFIG.AUTO_USE_BERRY_FOOD_TYPE);
-  const [goldLimit, setGoldLimit] = useState(DEFAULT_CONFIG.QUEST_GOLD_LIMIT);
-  const [selectedTasks, setSelectedTasks] = useState<Record<string, Record<string, boolean>>>(
-    DEFAULT_CONFIG.QUEST_DEFAULT_SELECTED_TASKS,
-  );
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
-  const [questManagerEnabled, setQuestManagerEnabled] = useState(DEFAULT_CONFIG.QUEST_MANAGER_ENABLED);
-  const [battleGuardEnabled, setBattleGuardEnabled] = useState(DEFAULT_CONFIG.BATTLE_GUARD_ENABLED);
-  const [qualityToolbarEnabled, setQualityToolbarEnabled] = useState(DEFAULT_CONFIG.QUALITY_TOOLBAR_ENABLED);
-  const [tavernExpertEnabled, setTavernExpertEnabled] = useState(DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED);
-  const [craftPanelEnabled, setCraftPanelEnabled] = useState(DEFAULT_CONFIG.CRAFT_PANEL_ENABLED);
-  const [skillAllocationEnabled, setSkillAllocationEnabled] = useState(DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED);
-  const [quickAlchemyEnabled, setQuickAlchemyEnabled] = useState(DEFAULT_CONFIG.QUICK_ALCHEMY_ENABLED);
+
+  const updateSetting = (key: string, value: any) => {
+    setSettings((prev) => (prev ? { ...prev, [key]: value } : null));
+  };
 
   // 加载初始数据
   useEffect(() => {
     const loadSettings = async () => {
-      const loadedBatchSize = await GM.getValue(STORAGE_KEYS.QUEST_BATCH_SIZE, DEFAULT_CONFIG.QUEST_BATCH_SIZE);
-      const loadedTaskInterval = await GM.getValue(STORAGE_KEYS.TASK_INTERVAL, DEFAULT_CONFIG.TASK_INTERVAL);
-      const loadedBatchDelay = await GM.getValue(STORAGE_KEYS.BATCH_DELAY, DEFAULT_CONFIG.BATCH_DELAY);
-      const loadedLogLevel = await GM.getValue(STORAGE_KEYS.LOG_LEVEL, DEFAULT_CONFIG.LOG_LEVEL);
-      const loadedBerryThreshold = await GM.getValue(
-        STORAGE_KEYS.AUTO_USE_BERRY_THRESHOLD,
-        DEFAULT_CONFIG.AUTO_USE_BERRY_THRESHOLD,
+      const loadedSettings = await Promise.all(
+        Object.values(appConfig).map(async (setting) => [setting.key, await setting.get()] as const),
       );
-      const loadedBerryTarget = await GM.getValue(
-        STORAGE_KEYS.AUTO_USE_BERRY_TARGET,
-        DEFAULT_CONFIG.AUTO_USE_BERRY_TARGET,
-      );
-      const loadedBerryFoodType = await GM.getValue(
-        STORAGE_KEYS.AUTO_USE_BERRY_FOOD_TYPE,
-        DEFAULT_CONFIG.AUTO_USE_BERRY_FOOD_TYPE,
-      );
-      const loadedGoldLimit = await GM.getValue(STORAGE_KEYS.QUEST_GOLD_LIMIT, DEFAULT_CONFIG.QUEST_GOLD_LIMIT);
-      const loadedSelectedTasks = await GM.getValue(
-        STORAGE_KEYS.QUEST_SELECTED_TASKS,
-        DEFAULT_CONFIG.QUEST_DEFAULT_SELECTED_TASKS,
-      );
-      const loadedQuestManagerEnabled = await GM.getValue(
-        STORAGE_KEYS.QUEST_MANAGER_ENABLED,
-        DEFAULT_CONFIG.QUEST_MANAGER_ENABLED,
-      );
-      const loadedBattleGuardEnabled = await GM.getValue(
-        STORAGE_KEYS.BATTLE_GUARD_ENABLED,
-        DEFAULT_CONFIG.BATTLE_GUARD_ENABLED,
-      );
-      const loadedQualityToolbarEnabled = await GM.getValue(
-        STORAGE_KEYS.QUALITY_TOOLBAR_ENABLED,
-        DEFAULT_CONFIG.QUALITY_TOOLBAR_ENABLED,
-      );
-      const loadedTavernExpertEnabled = await GM.getValue(
-        STORAGE_KEYS.TAVERN_EXPERT_ENABLED,
-        DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED,
-      );
-      const loadedCraftPanelEnabled = await GM.getValue(
-        STORAGE_KEYS.CRAFT_PANEL_ENABLED,
-        DEFAULT_CONFIG.CRAFT_PANEL_ENABLED,
-      );
-      const loadedSkillAllocationEnabled = await GM.getValue(
-        STORAGE_KEYS.SKILL_ALLOCATION_ENABLED,
-        DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED,
-      );
-      const loadedQuickAlchemyEnabled = await GM.getValue(
-        STORAGE_KEYS.QUICK_ALCHEMY_ENABLED,
-        DEFAULT_CONFIG.QUICK_ALCHEMY_ENABLED,
-      );
-      const loadedMonitorEnabled = await GM.getValue(
-        STORAGE_KEYS.RESOURCE_MONITOR_ENABLED,
-        DEFAULT_CONFIG.RESOURCE_MONITOR_ENABLED,
-      );
-      const loadedAutoBuyEnabled = await GM.getValue(
-        STORAGE_KEYS.AUTO_BUY_BASE_RESOURCES,
-        DEFAULT_CONFIG.AUTO_BUY_BASE_RESOURCES,
-      );
-
-      setBatchSize(loadedBatchSize);
-      setTaskInterval(loadedTaskInterval);
-      setBatchDelay(loadedBatchDelay);
-      setLogLevel(loadedLogLevel);
-      setBerryThreshold(loadedBerryThreshold);
-      setBerryTarget(loadedBerryTarget);
-      setBerryFoodType(loadedBerryFoodType);
-      setGoldLimit(loadedGoldLimit);
-      setSelectedTasks(loadedSelectedTasks);
-      setQuestManagerEnabled(loadedQuestManagerEnabled);
-      setBattleGuardEnabled(loadedBattleGuardEnabled);
-      setQualityToolbarEnabled(loadedQualityToolbarEnabled);
-      setTavernExpertEnabled(loadedTavernExpertEnabled);
-      setCraftPanelEnabled(loadedCraftPanelEnabled);
-      setSkillAllocationEnabled(loadedSkillAllocationEnabled);
-      setQuickAlchemyEnabled(loadedQuickAlchemyEnabled);
-      setMonitorEnabled(loadedMonitorEnabled);
-      setAutoBuyEnabled(loadedAutoBuyEnabled);
+      setSettings(Object.fromEntries(loadedSettings));
 
       if (resourceMonitor) {
-        const enabled = resourceMonitor.isEnabled();
-        const autoBuy = resourceMonitor.isAutoBuyEnabled();
-        const categories = resourceMonitor.getMonitoredResourcesByCategory();
-        setMonitorEnabled(enabled);
-        setAutoBuyEnabled(autoBuy);
-        setResourceCategories(categories);
-      }
-
-      if (satietyManager) {
-        const autoBerry = satietyManager.isEnabled();
-        setAutoBerryEnabled(autoBerry);
+        setResourceCategories(resourceMonitor.getMonitoredResourcesByCategory());
       }
     };
 
     void loadSettings();
   }, [resourceMonitor, satietyManager]);
+
+  // 加载中显示
+  if (!settings) {
+    return <div style={{ padding: '20px', textAlign: 'center' }}>加载中...</div>;
+  }
 
   const getResourceName = (id: string): string => {
     const resources = unsafeWindow.tAllGameResource;
@@ -185,33 +93,16 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
   };
 
   const handleSave = async () => {
-    await GM.setValue(STORAGE_KEYS.QUEST_BATCH_SIZE, batchSize);
-    await GM.setValue(STORAGE_KEYS.TASK_INTERVAL, taskInterval);
-    await GM.setValue(STORAGE_KEYS.BATCH_DELAY, batchDelay);
-    await GM.setValue(STORAGE_KEYS.LOG_LEVEL, logLevel);
-    await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_THRESHOLD, berryThreshold);
-    await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_TARGET, berryTarget);
-    await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_FOOD_TYPE, berryFoodType);
-    await GM.setValue(STORAGE_KEYS.QUEST_GOLD_LIMIT, goldLimit);
-    await GM.setValue(STORAGE_KEYS.QUEST_SELECTED_TASKS, selectedTasks);
-    await GM.setValue(STORAGE_KEYS.QUEST_MANAGER_ENABLED, questManagerEnabled);
-    await GM.setValue(STORAGE_KEYS.BATTLE_GUARD_ENABLED, battleGuardEnabled);
-    await GM.setValue(STORAGE_KEYS.QUALITY_TOOLBAR_ENABLED, qualityToolbarEnabled);
-    await GM.setValue(STORAGE_KEYS.TAVERN_EXPERT_ENABLED, tavernExpertEnabled);
-    await GM.setValue(STORAGE_KEYS.CRAFT_PANEL_ENABLED, craftPanelEnabled);
-    await GM.setValue(STORAGE_KEYS.SKILL_ALLOCATION_ENABLED, skillAllocationEnabled);
-    await GM.setValue(STORAGE_KEYS.QUICK_ALCHEMY_ENABLED, quickAlchemyEnabled);
-    await GM.setValue(STORAGE_KEYS.RESOURCE_MONITOR_ENABLED, monitorEnabled);
-    await GM.setValue(STORAGE_KEYS.AUTO_BUY_BASE_RESOURCES, autoBuyEnabled);
+    await Promise.all(Object.values(appConfig).map((setting) => setting.set(settings[setting.key] as never)));
 
-    taskQueue.setBatchSize(batchSize);
-    taskQueue.setInterval(taskInterval);
-    taskQueue.setBatchDelay(batchDelay);
-    logger.setMinLevel(logLevel);
+    taskQueue.setBatchSize(settings[appConfig.QUEST_BATCH_SIZE.key]);
+    taskQueue.setInterval(settings[appConfig.TASK_INTERVAL.key]);
+    taskQueue.setBatchDelay(settings[appConfig.BATCH_DELAY.key]);
+    logger.setMinLevel(settings[appConfig.LOG_LEVEL.key]);
 
     if (resourceMonitor) {
-      resourceMonitor.setEnabled(monitorEnabled);
-      resourceMonitor.setAutoBuyEnabled(autoBuyEnabled);
+      resourceMonitor.setEnabled(settings[appConfig.RESOURCE_MONITOR_ENABLED.key]);
+      resourceMonitor.setAutoBuyEnabled(settings[appConfig.AUTO_BUY_BASE_RESOURCES.key]);
 
       const resources: Record<string, ResourceConfig> = {};
       resourceCategories.forEach((category) => {
@@ -228,8 +119,8 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
     }
 
     if (satietyManager) {
-      await satietyManager.setEnabled(autoBerryEnabled);
-      await satietyManager.setFoodType(berryFoodType);
+      await satietyManager.setEnabled(settings[appConfig.AUTO_USE_BERRY_ENABLED.key]);
+      await satietyManager.setFoodType(settings[appConfig.AUTO_USE_BERRY_FOOD_TYPE.key]);
     }
 
     toast.success('设置已保存');
@@ -241,41 +132,22 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
   const handleClearAll = async () => {
     if (!confirm('确定要清空所有设置吗？此操作不可恢复！')) return;
 
-    await GM.setValue(STORAGE_KEYS.QUEST_BATCH_SIZE, DEFAULT_CONFIG.QUEST_BATCH_SIZE);
-    await GM.setValue(STORAGE_KEYS.TASK_INTERVAL, DEFAULT_CONFIG.TASK_INTERVAL);
-    await GM.setValue(STORAGE_KEYS.BATCH_DELAY, DEFAULT_CONFIG.BATCH_DELAY);
-    await GM.setValue(STORAGE_KEYS.RESOURCE_MONITOR_ENABLED, DEFAULT_CONFIG.RESOURCE_MONITOR_ENABLED);
-    await GM.setValue(STORAGE_KEYS.AUTO_BUY_BASE_RESOURCES, DEFAULT_CONFIG.AUTO_BUY_BASE_RESOURCES);
-    await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_ENABLED, DEFAULT_CONFIG.AUTO_USE_BERRY_ENABLED);
-    await GM.setValue(STORAGE_KEYS.MONITORED_RESOURCES, {});
-    await GM.setValue(STORAGE_KEYS.KITTY_DEFAULT_TASKS, {});
-    await GM.setValue(STORAGE_KEYS.LOG_LEVEL, DEFAULT_CONFIG.LOG_LEVEL);
-    await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_THRESHOLD, DEFAULT_CONFIG.AUTO_USE_BERRY_THRESHOLD);
-    await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_TARGET, DEFAULT_CONFIG.AUTO_USE_BERRY_TARGET);
-    await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_FOOD_TYPE, DEFAULT_CONFIG.AUTO_USE_BERRY_FOOD_TYPE);
-    await GM.setValue(STORAGE_KEYS.QUEST_GOLD_LIMIT, DEFAULT_CONFIG.QUEST_GOLD_LIMIT);
-    await GM.setValue(STORAGE_KEYS.QUEST_SELECTED_TASKS, DEFAULT_CONFIG.QUEST_DEFAULT_SELECTED_TASKS);
-    await GM.setValue(STORAGE_KEYS.QUEST_MANAGER_ENABLED, DEFAULT_CONFIG.QUEST_MANAGER_ENABLED);
-    await GM.setValue(STORAGE_KEYS.BATTLE_GUARD_ENABLED, DEFAULT_CONFIG.BATTLE_GUARD_ENABLED);
-    await GM.setValue(STORAGE_KEYS.QUALITY_TOOLBAR_ENABLED, DEFAULT_CONFIG.QUALITY_TOOLBAR_ENABLED);
-    await GM.setValue(STORAGE_KEYS.TAVERN_EXPERT_ENABLED, DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED);
-    await GM.setValue(STORAGE_KEYS.CRAFT_PANEL_ENABLED, DEFAULT_CONFIG.CRAFT_PANEL_ENABLED);
-    await GM.setValue(STORAGE_KEYS.SKILL_ALLOCATION_ENABLED, DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED);
-    await GM.setValue(STORAGE_KEYS.QUICK_ALCHEMY_ENABLED, DEFAULT_CONFIG.QUICK_ALCHEMY_ENABLED);
+    // 批量重置所有配置
+    await Promise.all(Object.values(appConfig).map((setting) => setting.reset()));
 
-    logger.setMinLevel(DEFAULT_CONFIG.LOG_LEVEL);
-    taskQueue.setBatchSize(DEFAULT_CONFIG.QUEST_BATCH_SIZE);
-    taskQueue.setInterval(DEFAULT_CONFIG.TASK_INTERVAL);
-    taskQueue.setBatchDelay(DEFAULT_CONFIG.BATCH_DELAY);
+    logger.setMinLevel(appConfig.LOG_LEVEL.defaultValue);
+    taskQueue.setBatchSize(appConfig.QUEST_BATCH_SIZE.defaultValue);
+    taskQueue.setInterval(appConfig.TASK_INTERVAL.defaultValue);
+    taskQueue.setBatchDelay(appConfig.BATCH_DELAY.defaultValue);
 
     if (resourceMonitor) {
-      resourceMonitor.setEnabled(DEFAULT_CONFIG.RESOURCE_MONITOR_ENABLED);
-      resourceMonitor.setAutoBuyEnabled(DEFAULT_CONFIG.AUTO_BUY_BASE_RESOURCES);
+      resourceMonitor.setEnabled(appConfig.RESOURCE_MONITOR_ENABLED.defaultValue);
+      resourceMonitor.setAutoBuyEnabled(appConfig.AUTO_BUY_BASE_RESOURCES.defaultValue);
       await resourceMonitor.setMonitoredResources({});
     }
 
     if (satietyManager) {
-      await satietyManager.setEnabled(DEFAULT_CONFIG.AUTO_USE_BERRY_ENABLED);
+      await satietyManager.setEnabled(appConfig.AUTO_USE_BERRY_ENABLED.defaultValue);
     }
 
     toast.success('所有设置已清空');
@@ -289,39 +161,43 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
       <Card title="🎯 功能开关">
         <Row>
           <Checkbox
-            checked={craftPanelEnabled}
-            onChange={setCraftPanelEnabled}
+            checked={settings[appConfig.CRAFT_PANEL_ENABLED.key]}
+            onChange={(v) => updateSetting(appConfig.CRAFT_PANEL_ENABLED.key, v)}
             label="物品制造 - 批量制造物品，自动计算依赖"
           />
         </Row>
         <Row>
           <Checkbox
-            checked={skillAllocationEnabled}
-            onChange={setSkillAllocationEnabled}
+            checked={settings[appConfig.SKILL_ALLOCATION_ENABLED.key]}
+            onChange={(v) => updateSetting(appConfig.SKILL_ALLOCATION_ENABLED.key, v)}
             label="技能加点 - 快速分配技能点"
           />
         </Row>
         <Row>
           <Checkbox
-            checked={tavernExpertEnabled}
-            onChange={setTavernExpertEnabled}
+            checked={settings[appConfig.TAVERN_EXPERT_ENABLED.key]}
+            onChange={(v) => updateSetting(appConfig.TAVERN_EXPERT_ENABLED.key, v)}
             label="酒馆专家 - 自动刷新酒馆任务"
           />
         </Row>
         <Row>
           <Checkbox
-            checked={quickAlchemyEnabled}
-            onChange={setQuickAlchemyEnabled}
+            checked={settings[appConfig.QUICK_ALCHEMY_ENABLED.key]}
+            onChange={(v) => updateSetting(appConfig.QUICK_ALCHEMY_ENABLED.key, v)}
             label="快速炼金 - 快速炼制战利品精华"
           />
         </Row>
         <Row>
-          <Checkbox checked={battleGuardEnabled} onChange={setBattleGuardEnabled} label="战斗防护 - 血量过低自动逃跑" />
+          <Checkbox
+            checked={settings[appConfig.BATTLE_GUARD_ENABLED.key]}
+            onChange={(v) => updateSetting(appConfig.BATTLE_GUARD_ENABLED.key, v)}
+            label="战斗防护 - 自动禁用战斗功能"
+          />
         </Row>
         <Row>
           <Checkbox
-            checked={qualityToolbarEnabled}
-            onChange={setQualityToolbarEnabled}
+            checked={settings[appConfig.QUALITY_TOOLBAR_ENABLED.key]}
+            onChange={(v) => updateSetting(appConfig.QUALITY_TOOLBAR_ENABLED.key, v)}
             label="缩小生活质量图标 - 优化界面显示"
           />
         </Row>
@@ -329,13 +205,19 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
 
       <Card title="📜 任务管理配置">
         <Row>
-          <Checkbox checked={questManagerEnabled} onChange={setQuestManagerEnabled} label="启用任务管理器" />
+          <Checkbox
+            checked={settings[appConfig.QUEST_MANAGER_ENABLED.key]}
+            onChange={(v) => updateSetting(appConfig.QUEST_MANAGER_ENABLED.key, v)}
+            label="启用任务管理器"
+          />
         </Row>
         <Row label="金币限制">
           <Input
             type="number"
-            value={goldLimit}
-            onChange={(v) => setGoldLimit(Number(v) || DEFAULT_CONFIG.QUEST_GOLD_LIMIT)}
+            value={settings[appConfig.QUEST_GOLD_LIMIT.key]}
+            onChange={(v) =>
+              updateSetting(appConfig.QUEST_GOLD_LIMIT.key, Number(v) || appConfig.QUEST_GOLD_LIMIT.defaultValue)
+            }
             min={0}
             step={250}
           />
@@ -365,12 +247,12 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
                 }
               >
                 <Checkbox
-                  checked={tasks.every((t) => selectedTasks[category]?.[t])}
+                  checked={tasks.every((t) => settings[appConfig.QUEST_SELECTED_TASKS.key]?.[category]?.[t])}
                   onChange={(checked) => {
-                    setSelectedTasks((prev) => ({
-                      ...prev,
+                    updateSetting(appConfig.QUEST_SELECTED_TASKS.key, {
+                      ...settings[appConfig.QUEST_SELECTED_TASKS.key],
                       [category]: tasks.reduce((acc, t) => ({ ...acc, [t]: checked }), {}),
-                    }));
+                    });
                   }}
                   onClick={(e) => e.stopPropagation()}
                   style={{ margin: 0 }}
@@ -384,15 +266,15 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
                   {tasks.map((task) => (
                     <Checkbox
                       key={task}
-                      checked={selectedTasks[category]?.[task] || false}
+                      checked={settings[appConfig.QUEST_SELECTED_TASKS.key]?.[category]?.[task] || false}
                       onChange={(checked) => {
-                        setSelectedTasks((prev) => ({
-                          ...prev,
+                        updateSetting(appConfig.QUEST_SELECTED_TASKS.key, {
+                          ...settings[appConfig.QUEST_SELECTED_TASKS.key],
                           [category]: {
-                            ...prev[category],
+                            ...settings[appConfig.QUEST_SELECTED_TASKS.key]?.[category],
                             [task]: checked,
                           },
-                        }));
+                        });
                       }}
                       label={task}
                       style={{ margin: 0 }}
@@ -409,8 +291,8 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         <Row label="批次大小">
           <Input
             type="number"
-            value={batchSize}
-            onChange={(v) => setBatchSize(parseInt(v) || 1)}
+            value={settings[appConfig.QUEST_BATCH_SIZE.key]}
+            onChange={(v) => updateSetting(appConfig.QUEST_BATCH_SIZE.key, parseInt(v) || 1)}
             min={1}
             max={100}
             step={1}
@@ -419,8 +301,8 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         <Row label="任务间隔(ms)">
           <Input
             type="number"
-            value={taskInterval}
-            onChange={(v) => setTaskInterval(parseInt(v) || 100)}
+            value={settings[appConfig.TASK_INTERVAL.key]}
+            onChange={(v) => updateSetting(appConfig.TASK_INTERVAL.key, parseInt(v) || 100)}
             min={100}
             max={10000}
             step={100}
@@ -429,8 +311,8 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         <Row label="批次间隔(ms)">
           <Input
             type="number"
-            value={batchDelay}
-            onChange={(v) => setBatchDelay(parseInt(v) || 1000)}
+            value={settings[appConfig.BATCH_DELAY.key]}
+            onChange={(v) => updateSetting(appConfig.BATCH_DELAY.key, parseInt(v) || 1000)}
             min={1000}
             max={60000}
             step={1000}
@@ -440,12 +322,16 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
 
       <Card title="🎒 饱食度管理配置">
         <Row>
-          <Checkbox checked={autoBerryEnabled} onChange={setAutoBerryEnabled} label="启用饱食度管理" />
+          <Checkbox
+            checked={settings[appConfig.AUTO_USE_BERRY_ENABLED.key]}
+            onChange={(v) => updateSetting(appConfig.AUTO_USE_BERRY_ENABLED.key, v)}
+            label="启用饱食度管理"
+          />
         </Row>
         <Row label="食物类型">
           <Select
-            value={berryFoodType}
-            onChange={(v) => setBerryFoodType(v as FoodType)}
+            value={settings[appConfig.AUTO_USE_BERRY_FOOD_TYPE.key]}
+            onChange={(v) => updateSetting(appConfig.AUTO_USE_BERRY_FOOD_TYPE.key, v as FoodType)}
             options={[
               { value: 'berry', label: '浆果' },
               { value: 'fish', label: '鱼' },
@@ -456,8 +342,8 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         <Row label="饱食度阈值">
           <Input
             type="number"
-            value={berryThreshold}
-            onChange={(v) => setBerryThreshold(parseInt(v) || 0)}
+            value={settings[appConfig.AUTO_USE_BERRY_THRESHOLD.key]}
+            onChange={(v) => updateSetting(appConfig.AUTO_USE_BERRY_THRESHOLD.key, parseInt(v) || 0)}
             min={0}
             step={100000}
           />
@@ -465,8 +351,8 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         <Row label="目标饱食度">
           <Input
             type="number"
-            value={berryTarget}
-            onChange={(v) => setBerryTarget(parseInt(v) || 0)}
+            value={settings[appConfig.AUTO_USE_BERRY_TARGET.key]}
+            onChange={(v) => updateSetting(appConfig.AUTO_USE_BERRY_TARGET.key, parseInt(v) || 0)}
             min={0}
             step={100000}
           />
@@ -475,10 +361,18 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
 
       <Card title="📊 资源监控配置">
         <Row>
-          <Checkbox checked={monitorEnabled} onChange={setMonitorEnabled} label="启用资源监控" />
+          <Checkbox
+            checked={settings[appConfig.RESOURCE_MONITOR_ENABLED.key]}
+            onChange={(v) => updateSetting(appConfig.RESOURCE_MONITOR_ENABLED.key, v)}
+            label="启用资源监控"
+          />
         </Row>
         <Row>
-          <Checkbox checked={autoBuyEnabled} onChange={setAutoBuyEnabled} label="自动购买基础资源" />
+          <Checkbox
+            checked={settings[appConfig.AUTO_BUY_BASE_RESOURCES.key]}
+            onChange={(v) => updateSetting(appConfig.AUTO_BUY_BASE_RESOURCES.key, v)}
+            label="自动购买基础资源"
+          />
         </Row>
 
         {resourceCategories.map((category, categoryIndex) => (
@@ -532,8 +426,8 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
       <Card title="🔧 调试配置">
         <Row label="日志级别">
           <Select
-            value={logLevel}
-            onChange={(v) => setLogLevel(v as typeof logLevel)}
+            value={settings[appConfig.LOG_LEVEL.key]}
+            onChange={(v) => updateSetting(appConfig.LOG_LEVEL.key, v)}
             options={[
               { value: 'none', label: '不显示日志' },
               { value: 'error', label: '错误' },

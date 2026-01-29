@@ -27,131 +27,13 @@ export interface ResourceCategory {
 }
 
 /**
- * 应用配置接口
- */
-export interface AppConfig {
-  QUEST_BATCH_SIZE: number;
-  TASK_INTERVAL: number;
-  BATCH_DELAY: number;
-  RESOURCE_MONITOR_ENABLED: boolean;
-  AUTO_BUY_BASE_RESOURCES: boolean;
-  AUTO_USE_BERRY_ENABLED: boolean;
-  LOG_LEVEL: 'debug' | 'info' | 'warn' | 'error' | 'success' | 'none';
-  AUTO_USE_BERRY_THRESHOLD: number;
-  AUTO_USE_BERRY_TARGET: number;
-  AUTO_USE_BERRY_FOOD_TYPE: FoodType;
-  QUEST_GOLD_LIMIT: number;
-  QUEST_DEFAULT_SELECTED_TASKS: Record<string, Record<string, boolean>>;
-  QUEST_MANAGER_ENABLED: boolean;
-  BATTLE_GUARD_ENABLED: boolean;
-  QUALITY_TOOLBAR_ENABLED: boolean;
-  TAVERN_EXPERT_ENABLED: boolean;
-  CRAFT_PANEL_ENABLED: boolean;
-  SKILL_ALLOCATION_ENABLED: boolean;
-  QUICK_ALCHEMY_ENABLED: boolean;
-}
-
-/**
- * 默认配置常量
- */
-export const DEFAULT_CONFIG: Readonly<AppConfig> = {
-  // 任务队列配置
-  QUEST_BATCH_SIZE: 20, // 每批任务数量
-  TASK_INTERVAL: 300, // 任务间隔（毫秒）
-  BATCH_DELAY: 5000, // 批次间隔（毫秒）
-
-  // 资源监控配置
-  RESOURCE_MONITOR_ENABLED: false, // 默认关闭资源监控
-  AUTO_BUY_BASE_RESOURCES: false, // 默认关闭自动购买基础资源
-
-  // 日志级别配置
-  LOG_LEVEL: 'none', // 默认不显示日志
-
-  // 自动使用浆果配置
-  AUTO_USE_BERRY_ENABLED: false, // 默认关闭自动使用浆果
-  AUTO_USE_BERRY_THRESHOLD: 500000, // 饱食度低于此值时自动使用浆果
-  AUTO_USE_BERRY_TARGET: 600000, // 使用浆果后的目标饱食度
-  AUTO_USE_BERRY_FOOD_TYPE: 'berry', // 使用的食物类型
-
-  // 任务管理器配置
-  QUEST_MANAGER_ENABLED: false, // 默认关闭任务管理器
-  QUEST_GOLD_LIMIT: 10000, // 任务刷新金币限制
-  QUEST_DEFAULT_SELECTED_TASKS: {
-    采集: {
-      采蘑菇: true,
-      采浆果: true,
-      采草药: true,
-      采集花草: true,
-      采蜂蜜: true,
-      砍树: true,
-      砍竹子: true,
-      捡贝壳: true,
-      挖沙: true,
-    },
-  },
-
-  // 功能开关
-  BATTLE_GUARD_ENABLED: false, // 默认关闭战斗防护
-  QUALITY_TOOLBAR_ENABLED: false, // 默认关闭缩小生活质量图标
-  TAVERN_EXPERT_ENABLED: false, // 默认关闭酒馆专家
-  CRAFT_PANEL_ENABLED: false, // 默认关闭物品制造
-  SKILL_ALLOCATION_ENABLED: false, // 默认关闭技能加点
-  QUICK_ALCHEMY_ENABLED: false, // 默认关闭快速炼金
-};
-
-/**
- * 技能分配默认配置
- */
-export const DEFAULT_SKILL_ALLOCATION = {
-  SPECIALTY: 'knowledge', // 默认专精：自我提升
-  STRATEGY: '产出优先', // 默认策略：产出优先
-  LUCKY_FIRST: true, // 默认幸运优先
-};
-
-/**
- * 存储键名常量
- */
-export const STORAGE_KEYS = {
-  QUEST_BATCH_SIZE: 'quest_batch_size',
-  TASK_INTERVAL: 'task_interval',
-  BATCH_DELAY: 'batch_delay',
-  RESOURCE_MONITOR_ENABLED: 'resource_monitor_enabled',
-  AUTO_BUY_BASE_RESOURCES: 'auto_buy_base_resources',
-  AUTO_USE_BERRY_ENABLED: 'auto_use_berry_enabled',
-  MONITORED_RESOURCES: 'monitored_resources',
-  KITTY_DEFAULT_TASKS: 'kitty_default_tasks',
-  LOG_LEVEL: 'log_level',
-  AUTO_USE_BERRY_THRESHOLD: 'auto_use_berry_threshold',
-  AUTO_USE_BERRY_TARGET: 'auto_use_berry_target',
-  AUTO_USE_BERRY_FOOD_TYPE: 'auto_use_berry_food_type',
-  QUEST_MANAGER_ENABLED: 'quest_manager_enabled',
-  BATTLE_GUARD_ENABLED: 'battle_guard_enabled',
-  QUALITY_TOOLBAR_ENABLED: 'quality_toolbar_enabled',
-  TAVERN_EXPERT_ENABLED: 'tavern_expert_enabled',
-  CRAFT_PANEL_ENABLED: 'craft_panel_enabled',
-  SKILL_ALLOCATION_ENABLED: 'skill_allocation_enabled',
-  QUEST_GOLD_LIMIT: 'quest_gold_limit',
-  QUEST_SELECTED_TASKS: 'quest_selected_tasks',
-  QUEST_FIRST_RUN: 'quest_first_run',
-  SKILL_ALLOCATION_SPECIALTY: 'skill_allocation_specialty',
-  SKILL_ALLOCATION_STRATEGY: 'skill_allocation_strategy',
-  SKILL_ALLOCATION_LUCKY_FIRST: 'skill_allocation_lucky_first',
-  QUICK_ALCHEMY_ENABLED: 'quick_alchemy_enabled',
-} as const;
-
-/**
- * 猫咪默认任务配置
- */
-export const DEFAULT_KITTY_TASKS: Record<string, string> = {};
-
-/**
  * 默认监控资源配置
  */
 export const DEFAULT_RESOURCES: ResourceCategory[] = [
   {
     name: '基础资源',
     items: {
-      berry: { threshold: DEFAULT_CONFIG.AUTO_USE_BERRY_TARGET, type: 'insufficient' },
+      berry: { threshold: 600000, type: 'insufficient' },
       fish: { threshold: 100000, type: 'insufficient' },
       wood: { threshold: 1000000, type: 'insufficient' },
       stone: { threshold: 1000000, type: 'insufficient' },

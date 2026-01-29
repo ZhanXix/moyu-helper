@@ -5,7 +5,7 @@
 
 import { toast } from '@/core/toast';
 import { logger } from '@/core/logger';
-import { DEFAULT_CONFIG, STORAGE_KEYS } from '@/config/defaults';
+import { appConfig } from '@/config/gm-settings';
 
 interface TaskQueueConfig {
   interval: number;
@@ -129,17 +129,14 @@ class TaskQueue {
 }
 
 export const taskQueue = new TaskQueue({
-  interval: DEFAULT_CONFIG.TASK_INTERVAL,
-  batchSize: DEFAULT_CONFIG.QUEST_BATCH_SIZE,
-  batchDelay: DEFAULT_CONFIG.BATCH_DELAY,
+  interval: appConfig.TASK_INTERVAL.defaultValue,
+  batchSize: appConfig.QUEST_BATCH_SIZE.defaultValue,
+  batchDelay: appConfig.BATCH_DELAY.defaultValue,
 });
 
 // 初始化配置
 (async () => {
-  const batchSize = await GM.getValue(STORAGE_KEYS.QUEST_BATCH_SIZE, DEFAULT_CONFIG.QUEST_BATCH_SIZE);
-  const taskInterval = await GM.getValue(STORAGE_KEYS.TASK_INTERVAL, DEFAULT_CONFIG.TASK_INTERVAL);
-  const batchDelay = await GM.getValue(STORAGE_KEYS.BATCH_DELAY, DEFAULT_CONFIG.BATCH_DELAY);
-  taskQueue.setBatchSize(batchSize);
-  taskQueue.setInterval(taskInterval);
-  taskQueue.setBatchDelay(batchDelay);
+  taskQueue.setBatchSize(await appConfig.QUEST_BATCH_SIZE.get());
+  taskQueue.setInterval(await appConfig.TASK_INTERVAL.get());
+  taskQueue.setBatchDelay(await appConfig.BATCH_DELAY.get());
 })();

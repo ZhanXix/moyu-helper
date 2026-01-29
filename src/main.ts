@@ -23,7 +23,7 @@ import {
   tavernExpertManager,
 } from './features';
 import { mountResourceUtils } from './utils';
-import { STORAGE_KEYS, DEFAULT_CONFIG } from './config/defaults';
+import { appConfig } from './config/gm-settings';
 import { analytics } from './utils';
 
 /**
@@ -57,7 +57,7 @@ const app: AppModules = {
  * 初始化日志系统
  */
 async function initLogger(): Promise<void> {
-  const logLevel = await GM.getValue(STORAGE_KEYS.LOG_LEVEL, DEFAULT_CONFIG.LOG_LEVEL);
+  const logLevel = await appConfig.LOG_LEVEL.get();
   logger.setMinLevel(logLevel);
 }
 
@@ -84,23 +84,11 @@ const getMenuButtons = async (): Promise<PanelButton[]> => {
   ];
 
   // 读取功能开关
-  const questManagerEnabled = await GM.getValue(
-    STORAGE_KEYS.QUEST_MANAGER_ENABLED,
-    DEFAULT_CONFIG.QUEST_MANAGER_ENABLED,
-  );
-  const craftPanelEnabled = await GM.getValue(STORAGE_KEYS.CRAFT_PANEL_ENABLED, DEFAULT_CONFIG.CRAFT_PANEL_ENABLED);
-  const skillAllocationEnabled = await GM.getValue(
-    STORAGE_KEYS.SKILL_ALLOCATION_ENABLED,
-    DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED,
-  );
-  const tavernExpertEnabled = await GM.getValue(
-    STORAGE_KEYS.TAVERN_EXPERT_ENABLED,
-    DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED,
-  );
-  const quickAlchemyEnabled = await GM.getValue(
-    STORAGE_KEYS.QUICK_ALCHEMY_ENABLED,
-    DEFAULT_CONFIG.QUICK_ALCHEMY_ENABLED,
-  );
+  const questManagerEnabled = await appConfig.QUEST_MANAGER_ENABLED.get();
+  const craftPanelEnabled = await appConfig.CRAFT_PANEL_ENABLED.get();
+  const skillAllocationEnabled = await appConfig.SKILL_ALLOCATION_ENABLED.get();
+  const tavernExpertEnabled = await appConfig.TAVERN_EXPERT_ENABLED.get();
+  const quickAlchemyEnabled = await appConfig.QUICK_ALCHEMY_ENABLED.get();
 
   // 技能加点
   if (skillAllocationEnabled) {
@@ -173,28 +161,13 @@ async function initUI(): Promise<void> {
  * 检查是否启用了任何功能，如果没有则提示用户
  */
 async function checkAndNotifyNoFeatures(): Promise<void> {
-  const craftPanelEnabled = await GM.getValue(STORAGE_KEYS.CRAFT_PANEL_ENABLED, DEFAULT_CONFIG.CRAFT_PANEL_ENABLED);
-  const skillAllocationEnabled = await GM.getValue(
-    STORAGE_KEYS.SKILL_ALLOCATION_ENABLED,
-    DEFAULT_CONFIG.SKILL_ALLOCATION_ENABLED,
-  );
-  const tavernExpertEnabled = await GM.getValue(
-    STORAGE_KEYS.TAVERN_EXPERT_ENABLED,
-    DEFAULT_CONFIG.TAVERN_EXPERT_ENABLED,
-  );
-  const battleGuardEnabled = await GM.getValue(STORAGE_KEYS.BATTLE_GUARD_ENABLED, DEFAULT_CONFIG.BATTLE_GUARD_ENABLED);
-  const questManagerEnabled = await GM.getValue(
-    STORAGE_KEYS.QUEST_MANAGER_ENABLED,
-    DEFAULT_CONFIG.QUEST_MANAGER_ENABLED,
-  );
-  const monitorEnabled = await GM.getValue(
-    STORAGE_KEYS.RESOURCE_MONITOR_ENABLED,
-    DEFAULT_CONFIG.RESOURCE_MONITOR_ENABLED,
-  );
-  const autoBerryEnabled = await GM.getValue(
-    STORAGE_KEYS.AUTO_USE_BERRY_ENABLED,
-    DEFAULT_CONFIG.AUTO_USE_BERRY_ENABLED,
-  );
+  const craftPanelEnabled = await appConfig.CRAFT_PANEL_ENABLED.get();
+  const skillAllocationEnabled = await appConfig.SKILL_ALLOCATION_ENABLED.get();
+  const tavernExpertEnabled = await appConfig.TAVERN_EXPERT_ENABLED.get();
+  const battleGuardEnabled = await appConfig.BATTLE_GUARD_ENABLED.get();
+  const questManagerEnabled = await appConfig.QUEST_MANAGER_ENABLED.get();
+  const monitorEnabled = await appConfig.RESOURCE_MONITOR_ENABLED.get();
+  const autoBerryEnabled = await appConfig.AUTO_USE_BERRY_ENABLED.get();
 
   const hasAnyFeatureEnabled =
     craftPanelEnabled ||
@@ -218,11 +191,8 @@ async function initFeatureModules(): Promise<void> {
   mountResourceUtils();
 
   // 读取功能开关配置
-  const battleGuardEnabled = await GM.getValue(STORAGE_KEYS.BATTLE_GUARD_ENABLED, DEFAULT_CONFIG.BATTLE_GUARD_ENABLED);
-  const qualityToolbarEnabled = await GM.getValue(
-    STORAGE_KEYS.QUALITY_TOOLBAR_ENABLED,
-    DEFAULT_CONFIG.QUALITY_TOOLBAR_ENABLED,
-  );
+  const battleGuardEnabled = await appConfig.BATTLE_GUARD_ENABLED.get();
+  const qualityToolbarEnabled = await appConfig.QUALITY_TOOLBAR_ENABLED.get();
 
   // 初始化工具栏管理器
   if (qualityToolbarEnabled) {

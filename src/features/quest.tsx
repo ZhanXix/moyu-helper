@@ -4,7 +4,7 @@
  */
 
 import { toast, ws, logger } from '@/core';
-import { DEFAULT_CONFIG, STORAGE_KEYS } from '@/config/defaults';
+import { appConfig } from '@/config/gm-settings';
 import { analytics } from '@/utils';
 
 interface Quest {
@@ -27,18 +27,13 @@ interface QuestManagerConfig {
 
 class QuestManager {
   private config: QuestManagerConfig = {
-    goldLimit: DEFAULT_CONFIG.QUEST_GOLD_LIMIT,
+    goldLimit: appConfig.QUEST_GOLD_LIMIT.defaultValue,
     selectedTasks: {},
   };
 
   async init(): Promise<void> {
-    const goldLimit = await GM.getValue(STORAGE_KEYS.QUEST_GOLD_LIMIT, DEFAULT_CONFIG.QUEST_GOLD_LIMIT);
-    const selectedTasks = await GM.getValue(
-      STORAGE_KEYS.QUEST_SELECTED_TASKS,
-      DEFAULT_CONFIG.QUEST_DEFAULT_SELECTED_TASKS,
-    );
-    this.config.goldLimit = goldLimit;
-    this.config.selectedTasks = selectedTasks;
+    this.config.goldLimit = await appConfig.QUEST_GOLD_LIMIT.get();
+    this.config.selectedTasks = await appConfig.QUEST_SELECTED_TASKS.get();
   }
 
   private isValidQuest(quest: Quest): boolean {
@@ -156,7 +151,7 @@ class QuestManager {
     await this.init();
 
     // 首次运行提示
-    const isFirstRun = await GM.getValue(STORAGE_KEYS.QUEST_FIRST_RUN, true);
+    const isFirstRun = await appConfig.QUEST_FIRST_RUN.get();
     if (isFirstRun) {
       return new Promise((resolve) => {
         toast.confirm(
@@ -166,7 +161,7 @@ class QuestManager {
           • 自动去重并添加到执行队列<br><br>
           <small>可在设置中修改筛选条件</small>`,
           async () => {
-            await GM.setValue(STORAGE_KEYS.QUEST_FIRST_RUN, false);
+            await appConfig.QUEST_FIRST_RUN.set(false);
             await this.executeRefresh();
             resolve();
           },
@@ -227,13 +222,13 @@ class QuestManager {
 
   async setGoldLimit(limit: number): Promise<void> {
     this.config.goldLimit = limit;
-    await GM.setValue(STORAGE_KEYS.QUEST_GOLD_LIMIT, limit);
+    await appConfig.QUEST_GOLD_LIMIT.set(limit);
     logger.info(`任务刷新金币限制已设置为: ${limit}`);
   }
 
   async setSelectedTasks(tasks: Record<string, Record<string, boolean>>): Promise<void> {
     this.config.selectedTasks = tasks;
-    await GM.setValue(STORAGE_KEYS.QUEST_SELECTED_TASKS, tasks);
+    await appConfig.QUEST_SELECTED_TASKS.set(tasks);
     logger.info('任务选择已更新');
   }
 }

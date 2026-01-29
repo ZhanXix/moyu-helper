@@ -4,7 +4,8 @@
  */
 
 import { logger, toast, dataCache, ws } from '@/core';
-import { STORAGE_KEYS, DEFAULT_CONFIG, type FoodType } from '@/config/defaults';
+import { type FoodType } from '@/config/defaults';
+import { appConfig } from '@/config/gm-settings';
 import { analytics } from '@/utils';
 
 class SatietyManager {
@@ -16,8 +17,8 @@ class SatietyManager {
   async init(): Promise<void> {
     if (this.isInitialized) return;
 
-    this.enabled = await GM.getValue(STORAGE_KEYS.AUTO_USE_BERRY_ENABLED, DEFAULT_CONFIG.AUTO_USE_BERRY_ENABLED);
-    this.foodType = await GM.getValue(STORAGE_KEYS.AUTO_USE_BERRY_FOOD_TYPE, DEFAULT_CONFIG.AUTO_USE_BERRY_FOOD_TYPE);
+    this.enabled = await appConfig.AUTO_USE_BERRY_ENABLED.get();
+    this.foodType = await appConfig.AUTO_USE_BERRY_FOOD_TYPE.get();
 
     dataCache.getAsync('inventory').then(() => {
       this.checkAndUseFood();
@@ -38,11 +39,8 @@ class SatietyManager {
     try {
       const currentSatiety = await dataCache.getItemCountAsync('__satiety');
 
-      const threshold = await GM.getValue(
-        STORAGE_KEYS.AUTO_USE_BERRY_THRESHOLD,
-        DEFAULT_CONFIG.AUTO_USE_BERRY_THRESHOLD,
-      );
-      const target = await GM.getValue(STORAGE_KEYS.AUTO_USE_BERRY_TARGET, DEFAULT_CONFIG.AUTO_USE_BERRY_TARGET);
+      const threshold = await appConfig.AUTO_USE_BERRY_THRESHOLD.get();
+      const target = await appConfig.AUTO_USE_BERRY_TARGET.get();
 
       if (currentSatiety < threshold) {
         let remaining = target - currentSatiety;
@@ -73,7 +71,7 @@ class SatietyManager {
 
   async setEnabled(enabled: boolean): Promise<void> {
     this.enabled = enabled;
-    await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_ENABLED, enabled);
+    await appConfig.AUTO_USE_BERRY_ENABLED.set(enabled);
     logger.info(`饱食度管理已${enabled ? '启用' : '禁用'}`);
   }
 
@@ -83,7 +81,7 @@ class SatietyManager {
 
   async setFoodType(foodType: FoodType): Promise<void> {
     this.foodType = foodType;
-    await GM.setValue(STORAGE_KEYS.AUTO_USE_BERRY_FOOD_TYPE, foodType);
+    await appConfig.AUTO_USE_BERRY_FOOD_TYPE.set(foodType);
     const foodName = foodType === 'berry' ? '浆果' : foodType === 'fish' ? '鱼' : '豪华猫粮';
     logger.info(`食物类型已设置为: ${foodName}`);
   }
