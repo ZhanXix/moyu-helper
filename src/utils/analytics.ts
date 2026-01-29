@@ -2,15 +2,16 @@
  * 51.la 统计集成
  */
 
+import { isDev } from '@/config/env';
+
 declare const unsafeWindow: Window & { LA?: any };
 
 class Analytics {
   private readonly LA_ID = '3OqB1GxEyPx7V8kp';
   private readonly LA_CK = '3OqB1GxEyPx7V8kp';
-  private readonly isDev = import.meta.env.DEV;
 
   init() {
-    if (this.isDev) return;
+    if (isDev) return;
     const script = document.createElement('script');
     script.charset = 'UTF-8';
     script.id = 'LA_COLLECT';
@@ -24,7 +25,7 @@ class Analytics {
   }
 
   track(category: string, action: string, label?: string) {
-    if (this.isDev) return;
+    if (isDev) return;
     if (unsafeWindow.LA) {
       unsafeWindow.LA.track(action, { category, label });
     }

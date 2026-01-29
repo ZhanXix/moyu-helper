@@ -31,13 +31,30 @@ class TavernExpertManager {
         toast.success('✅ 强化专家已暂停');
         analytics.track('酒馆专家', '暂停', '强化专家');
       } else {
-        await ws.sendAndListen('tavern:resume', { catId: 'enhanceExpert' });
+        const res = await ws.sendAndListen('tavern:resume', { catId: 'enhanceExpert' });
+
+        // 检查结束时间
+        if (res?.payload?.data?.record?.end_date) {
+          const endTime = new Date(res.payload.data.record.end_date).getTime();
+          const now = Date.now();
+          const remainingMs = endTime - now;
+          const remainingHours = remainingMs / (1000 * 60 * 60);
+
+          if (remainingHours < 1) {
+            const remainingMinutes = Math.floor(remainingMs / 60000);
+            await ws.sendAndListen('tavern:renewExpert', { catId: 'enhanceExpert', hours: 1 });
+            toast.success(`✅ 强化专家已恢复，剩余${remainingMinutes}分钟，已自动续约1小时`);
+          } else {
+            toast.success('✅ 强化专家已恢复');
+          }
+          analytics.track('酒馆专家', '恢复', '强化专家');
+        }
+
         toast.success('✅ 强化专家已恢复');
         analytics.track('酒馆专家', '恢复', '强化专家');
       }
-
-      const res = await ws.sendAndListen('tavern:getMyExperts');
-      console.log('🚀 ~ TavernExpertManager ~ toggle ~ res :', res);
+      // 触发dataCache更新
+      ws.send('tavern:getMyExperts');
     } catch (error) {
       logger.error('切换强化专家状态失败', error);
       toast.error('操作失败，请稍后重试');

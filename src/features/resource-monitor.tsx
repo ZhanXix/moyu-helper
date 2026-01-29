@@ -166,7 +166,7 @@ class ResourceMonitor {
 
     try {
       const inventory = await dataCache.getAsync('inventory', true);
-      this.performCheck(inventory, true, persistent);
+      await this.performCheck(inventory, true, persistent);
       analytics.track('资源监控', '手动检查', '查看库存');
     } catch (error) {
       logger.error('获取库存数据失败', error);
@@ -174,7 +174,7 @@ class ResourceMonitor {
     }
   }
 
-  private performCheck(inventory: Inventory, showAlert: boolean, persistent: boolean = true): void {
+  private async performCheck(inventory: Inventory, showAlert: boolean, persistent: boolean = true): Promise<void> {
     const gameResources = unsafeWindow.tAllGameResource;
     if (!gameResources) {
       logger.warn('游戏资源数据未加载');
@@ -183,7 +183,14 @@ class ResourceMonitor {
 
     const problematicItems = this.findProblematicItems(inventory, gameResources);
 
-    const remainingItems = this.autoBuyBaseResources(problematicItems);
+    const hasBought = await this.autoBuyBaseResources(problematicItems);
+
+    let remainingItems = problematicItems;
+    if (hasBought) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      const updatedInventory = await dataCache.getAsync('inventory', true);
+      remainingItems = this.findProblematicItems(updatedInventory, gameResources);
+    }
 
     const insufficientCount = remainingItems.filter((item) => item.type === 'insufficient').length;
     const excessCount = remainingItems.filter((item) => item.type === 'excess').length;
@@ -219,14 +226,14 @@ class ResourceMonitor {
     return items;
   }
 
-  private autoBuyBaseResources(problematicItems: ResourceItem[]): ResourceItem[] {
-    if (!this.autoBuyEnabled) return problematicItems;
+  private async autoBuyBaseResources(problematicItems: ResourceItem[]): Promise<boolean> {
+    if (!this.autoBuyEnabled) return false;
 
     const baseResources = ['berry', 'fish', 'wood', 'stone', 'coal'];
     const gameResources = unsafeWindow.tAllGameResource;
-    if (!gameResources) return problematicItems;
+    if (!gameResources) return false;
 
-    const boughtResourceNames = new Set<string>();
+    let hasBought = false;
 
     for (const item of problematicItems) {
       if (item.type !== 'insufficient') continue;
@@ -235,14 +242,14 @@ class ResourceMonitor {
 
       const needed = item.threshold - item.count;
       if (needed > 0) {
-        void ws.send('requestShopBuyResource', { id: resourceId, count: needed });
+        await ws.send('requestShopBuyResource', { id: resourceId, count: needed });
         logger.info(`自动购买基础资源: ${item.name} x${needed}`);
         analytics.track('资源监控', '自动购买', `${item.name}x${needed}`);
-        boughtResourceNames.add(item.name);
+        hasBought = true;
       }
     }
 
-    return problematicItems.filter((item) => !boughtResourceNames.has(item.name));
+    return hasBought;
   }
 
   private showAlert(items: ResourceItem[], persistent: boolean = true): void {

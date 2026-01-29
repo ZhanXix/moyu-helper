@@ -539,7 +539,7 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
       <FormGroup label="制造数量">
         <Input type="number" value={count} onChange={(v) => setCount(parseInt(v) || 1)} min={1} step={1} />
         <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-          {[10, 200, 1000, 10000].map((value) => (
+          {[10, 100, 1000, 10000].map((value) => (
             <Button
               key={value}
               variant="secondary"
@@ -577,7 +577,7 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
         </div>
       )}
 
-      <Card title="🗑️ 清空任务" style={{ marginBottom: '16px' }}>
+      <Card title="🗑️ 清空任务" style={{ margin: '16px 0' }}>
         <div style={{ display: 'flex', gap: '8px' }}>
           <Button variant="secondary" onClick={handleClearPlayerTasks} style={{ flex: 1, padding: '8px 12px' }}>
             主角色
