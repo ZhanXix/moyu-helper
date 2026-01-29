@@ -149,7 +149,7 @@ class QuestManager {
 
     toast.success(`✅ 已添加 ${quests.length} 个任务到执行队列`);
     logger.success(`已添加 ${quests.length} 个任务`);
-    analytics.track('任务', '刷新任务', `${quests.length}个`);
+
   }
 
   async refreshCards(): Promise<void> {
@@ -217,6 +217,7 @@ class QuestManager {
 
       await this.startQuests(uniqueQuests);
       progress.hide();
+      analytics.track('任务', 'refresh-quest', `${uniqueQuests.length}个`);
     } catch (error) {
       logger.error('任务处理失败', error);
       progress.hide();

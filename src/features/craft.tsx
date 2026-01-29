@@ -264,7 +264,7 @@ class CraftManager {
 
       this.progressToast.hide();
       toast.success(`已提交 ${optimized.length} 个制造任务`);
-      analytics.track('制造', '玩家制造', `${optimized.length}个任务`);
+      analytics.track('制造', 'player-craft', `${optimized.length}个任务`);
     } catch (error) {
       logger.error('制造失败', error);
       toast.error('制造失败');
@@ -343,7 +343,6 @@ class CraftManager {
       this.progressToast?.hide();
       const taskCount = addedDefaultTask ? tasks.length + 1 : tasks.length;
       toast.success(`🐱 ${kittyName} 已提交 ${taskCount} 个任务`);
-      analytics.track('制造', '猫咪制造', `${taskCount}个任务`);
     } catch (error) {
       logger.error(`🐱 ${kittyName} 制造失败`, error);
       toast.error('制造失败');
@@ -455,7 +454,6 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
       return;
     }
     onClose();
-    analytics.track('界面', '打开制造面板', '开始制造');
     await craftManager.craftWithDependencies(selectedItem, count, clearTasks);
   };
 
@@ -465,7 +463,6 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
       return;
     }
     onClose();
-    analytics.track('界面', '打开制造面板', `猫咪制造-${kittyName}`);
     await craftManager.craftWithKitty(kittyUuid, kittyName, kittyIndex, selectedItem, count, clearTasks);
   };
 
@@ -643,7 +640,6 @@ export class CraftPanel {
   show(): void {
     if (this.isOpen) return;
     this.isOpen = true;
-    analytics.track('界面', '打开面板', '制造面板');
 
     if (!this.container) {
       this.container = document.createElement('div');

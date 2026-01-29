@@ -40,7 +40,6 @@ class AlchemyManager {
       const item = ALCHEMY_ITEMS.find((i) => i.id === itemId);
       if (!item) {
         toast.error('未找到炼金配方');
-        analytics.track('炼金', '炼金失败', '未找到配方');
         return;
       }
 
@@ -68,11 +67,10 @@ class AlchemyManager {
       await ws.sendAndListen('alchemy:auto:create', alchemyData, 'alchemy:auto:create:success', 30000);
 
       toast.success(`✅ 炼金任务提交成功！`);
-      analytics.track('炼金', '快速炼金成功', `${getCachedResourceName(item.id)} x${times}`);
+      analytics.track('炼金', 'quick-alchemy-success', `${getCachedResourceName(item.id)} x${times}`);
     } catch (error) {
       logger.error('炼金失败', error);
       toast.error('炼金任务提交失败');
-      analytics.track('炼金', '炼金失败', error instanceof Error ? error.message : '未知错误');
     }
   }
 }
@@ -191,7 +189,6 @@ function AlchemyPanelContent({ onClose }: AlchemyPanelProps) {
 
   const handleQuickAdd = (value: number) => {
     setTimes((prev) => prev + value);
-    analytics.track('炼金', '快速加次数', `+${value}`);
   };
 
   const handleAlchemy = async () => {
@@ -302,7 +299,6 @@ export class AlchemyPanel {
   show(): void {
     if (this.isOpen) return;
     this.isOpen = true;
-    analytics.track('界面', '打开面板', '炼金面板');
 
     if (!this.container) {
       this.container = document.createElement('div');
@@ -320,7 +316,6 @@ export class AlchemyPanel {
   hide(): void {
     if (!this.isOpen) return;
     this.isOpen = false;
-    analytics.track('界面', '关闭面板', '炼金面板');
 
     if (this.container) {
       render(null, this.container);

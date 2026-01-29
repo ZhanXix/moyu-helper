@@ -169,7 +169,6 @@ class ResourceMonitor {
 
     try {
       await this.performCheck(true, persistent);
-      analytics.track('资源监控', '手动检查', '查看库存');
     } catch (error) {
       logger.error('获取库存数据失败', error);
       toast.error('获取库存数据失败，请稍后重试');
@@ -262,7 +261,7 @@ class ResourceMonitor {
         try {
           await ws.send('requestShopBuyResource', { id: resourceId, count: needed });
           logger.info(`自动购买基础资源: ${item.name} x${needed}`);
-          analytics.track('资源监控', '自动购买', `${item.name}x${needed}`);
+          analytics.track('资源监控', 'auto-buy', `${item.name}x${needed}`);
           hasBought = true;
         } catch (error) {
           logger.error(`购买 ${item.name} 失败`, error);

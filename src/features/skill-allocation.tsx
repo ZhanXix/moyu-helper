@@ -799,7 +799,7 @@ class SkillAllocationManager {
       }
 
       logger.success(`自动加点完成: 总点数=${totalPoints}, 剩余=${totalPoints - totalUsedPoints}`);
-      analytics.track('技能分配', '自动加点', `${strategy}-${specialty}`);
+      analytics.track('技能分配', 'auto-allocate', `${strategy}-${specialty}`);
 
       return { allocation: result.allocation, summary: result.summary };
     } catch (error) {
@@ -1036,7 +1036,7 @@ export class SkillAllocationPanel {
   show(): void {
     if (this.isOpen) return;
     this.isOpen = true;
-    analytics.track('界面', '打开面板', '技能分配面板');
+
 
     if (!this.container) {
       this.container = document.createElement('div');

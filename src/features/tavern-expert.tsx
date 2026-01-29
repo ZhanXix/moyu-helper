@@ -25,11 +25,9 @@ class TavernExpertManager {
       if (!enhanceExpert) {
         await ws.sendAndListen('tavern:hireExpert', { catId: 'enhanceExpert', hours: 1 });
         toast.success('✅ 强化专家已启用');
-        analytics.track('酒馆专家', '启用', '强化专家');
       } else if (enhanceExpert.state === 'WORKING') {
         await ws.sendAndListen('tavern:pause', { catId: 'enhanceExpert' });
         toast.success('✅ 强化专家已暂停');
-        analytics.track('酒馆专家', '暂停', '强化专家');
       } else {
         const res = await ws.sendAndListen('tavern:resume', { catId: 'enhanceExpert' });
 
@@ -47,11 +45,9 @@ class TavernExpertManager {
           } else {
             toast.success('✅ 强化专家已恢复');
           }
-          analytics.track('酒馆专家', '恢复', '强化专家');
         }
 
         toast.success('✅ 强化专家已恢复');
-        analytics.track('酒馆专家', '恢复', '强化专家');
       }
       // 触发dataCache更新
       ws.send('tavern:getMyExperts');

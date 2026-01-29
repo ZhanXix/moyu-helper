@@ -16,7 +16,6 @@ import { DEFAULT_CONFIG, STORAGE_KEYS, type FoodType, QUEST_TASK_TYPES } from '@
 import { logger, toast } from '@/core';
 import { taskQueue } from '@/utils/task-queue';
 import { Modal, Card, Row, Input, Checkbox, Button, Select, Section } from './components';
-import { analytics } from '@/utils';
 
 interface ResourceConfig {
   threshold: number;
@@ -47,7 +46,9 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
   const [berryTarget, setBerryTarget] = useState(DEFAULT_CONFIG.AUTO_USE_BERRY_TARGET);
   const [berryFoodType, setBerryFoodType] = useState<FoodType>(DEFAULT_CONFIG.AUTO_USE_BERRY_FOOD_TYPE);
   const [goldLimit, setGoldLimit] = useState(DEFAULT_CONFIG.QUEST_GOLD_LIMIT);
-  const [selectedTasks, setSelectedTasks] = useState<Record<string, Record<string, boolean>>>(DEFAULT_CONFIG.QUEST_DEFAULT_SELECTED_TASKS);
+  const [selectedTasks, setSelectedTasks] = useState<Record<string, Record<string, boolean>>>(
+    DEFAULT_CONFIG.QUEST_DEFAULT_SELECTED_TASKS,
+  );
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
   const [questManagerEnabled, setQuestManagerEnabled] = useState(DEFAULT_CONFIG.QUEST_MANAGER_ENABLED);
   const [battleGuardEnabled, setBattleGuardEnabled] = useState(DEFAULT_CONFIG.BATTLE_GUARD_ENABLED);
@@ -77,7 +78,10 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         DEFAULT_CONFIG.AUTO_USE_BERRY_FOOD_TYPE,
       );
       const loadedGoldLimit = await GM.getValue(STORAGE_KEYS.QUEST_GOLD_LIMIT, DEFAULT_CONFIG.QUEST_GOLD_LIMIT);
-      const loadedSelectedTasks = await GM.getValue(STORAGE_KEYS.QUEST_SELECTED_TASKS, DEFAULT_CONFIG.QUEST_DEFAULT_SELECTED_TASKS);
+      const loadedSelectedTasks = await GM.getValue(
+        STORAGE_KEYS.QUEST_SELECTED_TASKS,
+        DEFAULT_CONFIG.QUEST_DEFAULT_SELECTED_TASKS,
+      );
       const loadedQuestManagerEnabled = await GM.getValue(
         STORAGE_KEYS.QUEST_MANAGER_ENABLED,
         DEFAULT_CONFIG.QUEST_MANAGER_ENABLED,
@@ -229,7 +233,7 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
     }
 
     toast.success('设置已保存');
-    analytics.track('设置', '保存设置', '成功');
+
     window.dispatchEvent(new CustomEvent('settings-updated'));
     onClose();
   };
@@ -275,7 +279,7 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
     }
 
     toast.success('所有设置已清空');
-    analytics.track('设置', '清空设置', '成功');
+
     onClose();
     location.reload();
   };
@@ -284,22 +288,42 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
     <>
       <Card title="🎯 功能开关">
         <Row>
-          <Checkbox checked={craftPanelEnabled} onChange={setCraftPanelEnabled} label="物品制造 - 批量制造物品，自动计算依赖" />
+          <Checkbox
+            checked={craftPanelEnabled}
+            onChange={setCraftPanelEnabled}
+            label="物品制造 - 批量制造物品，自动计算依赖"
+          />
         </Row>
         <Row>
-          <Checkbox checked={skillAllocationEnabled} onChange={setSkillAllocationEnabled} label="技能加点 - 快速分配技能点" />
+          <Checkbox
+            checked={skillAllocationEnabled}
+            onChange={setSkillAllocationEnabled}
+            label="技能加点 - 快速分配技能点"
+          />
         </Row>
         <Row>
-          <Checkbox checked={tavernExpertEnabled} onChange={setTavernExpertEnabled} label="酒馆专家 - 自动刷新酒馆任务" />
+          <Checkbox
+            checked={tavernExpertEnabled}
+            onChange={setTavernExpertEnabled}
+            label="酒馆专家 - 自动刷新酒馆任务"
+          />
         </Row>
         <Row>
-          <Checkbox checked={quickAlchemyEnabled} onChange={setQuickAlchemyEnabled} label="快速炼金 - 快速炼制战利品精华" />
+          <Checkbox
+            checked={quickAlchemyEnabled}
+            onChange={setQuickAlchemyEnabled}
+            label="快速炼金 - 快速炼制战利品精华"
+          />
         </Row>
         <Row>
           <Checkbox checked={battleGuardEnabled} onChange={setBattleGuardEnabled} label="战斗防护 - 血量过低自动逃跑" />
         </Row>
         <Row>
-          <Checkbox checked={qualityToolbarEnabled} onChange={setQualityToolbarEnabled} label="缩小生活质量图标 - 优化界面显示" />
+          <Checkbox
+            checked={qualityToolbarEnabled}
+            onChange={setQualityToolbarEnabled}
+            label="缩小生活质量图标 - 优化界面显示"
+          />
         </Row>
       </Card>
 
@@ -316,11 +340,14 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
             step={250}
           />
         </Row>
-        
+
         <div style={{ marginTop: '15px' }}>
           <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px' }}>选择要保留的任务类型:</div>
           {Object.entries(QUEST_TASK_TYPES).map(([category, tasks]) => (
-            <div key={category} style={{ marginBottom: '10px', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}>
+            <div
+              key={category}
+              style={{ marginBottom: '10px', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}
+            >
               <div
                 style={{
                   display: 'flex',
@@ -328,19 +355,21 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
                   padding: '8px 12px',
                   background: '#f5f5f5',
                   cursor: 'pointer',
-                  gap: '8px'
+                  gap: '8px',
                 }}
-                onClick={() => setExpandedCategories(prev => ({
-                  ...prev,
-                  [category]: !prev[category]
-                }))}
+                onClick={() =>
+                  setExpandedCategories((prev) => ({
+                    ...prev,
+                    [category]: !prev[category],
+                  }))
+                }
               >
                 <Checkbox
-                  checked={tasks.every(t => selectedTasks[category]?.[t])}
+                  checked={tasks.every((t) => selectedTasks[category]?.[t])}
                   onChange={(checked) => {
-                    setSelectedTasks(prev => ({
+                    setSelectedTasks((prev) => ({
                       ...prev,
-                      [category]: tasks.reduce((acc, t) => ({ ...acc, [t]: checked }), {})
+                      [category]: tasks.reduce((acc, t) => ({ ...acc, [t]: checked }), {}),
                     }));
                   }}
                   onClick={(e) => e.stopPropagation()}
@@ -349,20 +378,20 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
                 <span style={{ flex: 1 }}>{category}</span>
                 <span style={{ fontSize: '12px', color: '#666' }}>{expandedCategories[category] ? '▼' : '▶'}</span>
               </div>
-              
+
               {expandedCategories[category] && (
                 <div style={{ padding: '8px 12px 8px 32px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                  {tasks.map(task => (
+                  {tasks.map((task) => (
                     <Checkbox
                       key={task}
                       checked={selectedTasks[category]?.[task] || false}
                       onChange={(checked) => {
-                        setSelectedTasks(prev => ({
+                        setSelectedTasks((prev) => ({
                           ...prev,
                           [category]: {
                             ...prev[category],
-                            [task]: checked
-                          }
+                            [task]: checked,
+                          },
                         }));
                       }}
                       label={task}
@@ -562,7 +591,6 @@ class SettingsPanel {
   show(): void {
     if (this.isOpen) return;
     this.isOpen = true;
-    analytics.track('界面', '打开面板', '设置面板');
 
     if (!this.container) {
       this.container = document.createElement('div');

@@ -58,7 +58,7 @@ class SatietyManager {
         const foodName = this.foodType === 'berry' ? '浆果' : this.foodType === 'fish' ? '鱼' : '豪华猫粮';
         logger.info(`当前饱食度: ${currentSatiety}, 已使用${foodName}: ${totalUsed}`);
         toast.success(`✅ 已使用 ${totalUsed} ${foodName}`);
-        analytics.track('饱食度', '自动使用食物', `${foodName}x${totalUsed}`);
+        analytics.track('饱食度', 'auto-use-food', `${foodName}x${totalUsed}`);
       }
     } catch (error) {
       logger.error('检查饱食度失败', error);
