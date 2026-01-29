@@ -5,6 +5,7 @@
 
 import { toast } from '@/core/toast';
 import { logger } from '@/core/logger';
+import { eventBus, EVENTS } from '@/core/event-bus';
 import { appConfig } from '@/config/gm-settings';
 
 interface TaskQueueConfig {
@@ -28,6 +29,7 @@ class TaskQueue {
 
   constructor(config: TaskQueueConfig) {
     this.config = config;
+    eventBus.on(EVENTS.SETTINGS_UPDATED, () => this.reload());
   }
 
   setConfig(config: Partial<TaskQueueConfig>): void {
@@ -125,6 +127,13 @@ class TaskQueue {
     this.countdownToast?.hide();
     this.countdownToast = null;
     logger.info('任务队列已销毁');
+  }
+
+  async reload(): Promise<void> {
+    this.config.batchSize = await appConfig.QUEST_BATCH_SIZE.get();
+    this.config.interval = await appConfig.TASK_INTERVAL.get();
+    this.config.batchDelay = await appConfig.BATCH_DELAY.get();
+    logger.info('任务队列配置已刷新');
   }
 }
 

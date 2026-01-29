@@ -3,9 +3,10 @@
  * 自动禁用战斗功能，防止因战斗导致的连接问题
  */
 
-import { ws } from '@/core';
+import { ws, eventBus, EVENTS } from '@/core';
 import { logger } from '@/core/logger';
 import { analytics } from '@/utils';
+import { appConfig } from '@/config/gm-settings';
 
 interface BattleGuardConfig {
   maxRetries: number;
@@ -36,6 +37,8 @@ class BattleGuard {
 
     // 延迟发送禁用消息
     setTimeout(() => this.trySendDisableMessage(), 1500);
+
+    eventBus.on(EVENTS.SETTINGS_UPDATED, () => this.reload());
   }
 
   /**
@@ -106,6 +109,14 @@ class BattleGuard {
     this.isMessageSent = false;
     this.retryCount = 0;
     logger.info('[战斗防护] 已销毁');
+  }
+
+  async reload(): Promise<void> {
+    const enabled = await appConfig.BATTLE_GUARD_ENABLED.get();
+    if (enabled && !this.isMessageSent) {
+      setTimeout(() => this.trySendDisableMessage(), 500);
+    }
+    logger.info('[战斗防护] 配置已刷新');
   }
 }
 

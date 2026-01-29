@@ -14,8 +14,7 @@ import type { resourceMonitor } from '@/features/resource-monitor';
 import type { satietyManager } from '@/features/satiety-manager';
 import { type FoodType, QUEST_TASK_TYPES } from '@/config/defaults';
 import { appConfig } from '@/config/gm-settings';
-import { logger, toast } from '@/core';
-import { taskQueue } from '@/utils/task-queue';
+import { toast, eventBus, EVENTS } from '@/core';
 import { Modal, Card, Row, Input, Checkbox, Button, Select, Section } from './components';
 
 interface ResourceConfig {
@@ -95,15 +94,7 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
   const handleSave = async () => {
     await Promise.all(Object.values(appConfig).map((setting) => setting.set(settings[setting.key] as never)));
 
-    taskQueue.setBatchSize(settings[appConfig.QUEST_BATCH_SIZE.key]);
-    taskQueue.setInterval(settings[appConfig.TASK_INTERVAL.key]);
-    taskQueue.setBatchDelay(settings[appConfig.BATCH_DELAY.key]);
-    logger.setMinLevel(settings[appConfig.LOG_LEVEL.key]);
-
     if (resourceMonitor) {
-      resourceMonitor.setEnabled(settings[appConfig.RESOURCE_MONITOR_ENABLED.key]);
-      resourceMonitor.setAutoBuyEnabled(settings[appConfig.AUTO_BUY_BASE_RESOURCES.key]);
-
       const resources: Record<string, ResourceConfig> = {};
       resourceCategories.forEach((category) => {
         Object.entries(category.items).forEach(([id, config]) => {
@@ -114,44 +105,25 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
           }
         });
       });
-
       await resourceMonitor.setMonitoredResources(resources);
     }
 
-    if (satietyManager) {
-      await satietyManager.setEnabled(settings[appConfig.AUTO_USE_BERRY_ENABLED.key]);
-      await satietyManager.setFoodType(settings[appConfig.AUTO_USE_BERRY_FOOD_TYPE.key]);
-    }
-
     toast.success('设置已保存');
-
-    window.dispatchEvent(new CustomEvent('settings-updated'));
+    eventBus.emit(EVENTS.SETTINGS_UPDATED);
     onClose();
   };
 
   const handleClearAll = async () => {
     if (!confirm('确定要清空所有设置吗？此操作不可恢复！')) return;
 
-    // 批量重置所有配置
     await Promise.all(Object.values(appConfig).map((setting) => setting.reset()));
 
-    logger.setMinLevel(appConfig.LOG_LEVEL.defaultValue);
-    taskQueue.setBatchSize(appConfig.QUEST_BATCH_SIZE.defaultValue);
-    taskQueue.setInterval(appConfig.TASK_INTERVAL.defaultValue);
-    taskQueue.setBatchDelay(appConfig.BATCH_DELAY.defaultValue);
-
     if (resourceMonitor) {
-      resourceMonitor.setEnabled(appConfig.RESOURCE_MONITOR_ENABLED.defaultValue);
-      resourceMonitor.setAutoBuyEnabled(appConfig.AUTO_BUY_BASE_RESOURCES.defaultValue);
       await resourceMonitor.setMonitoredResources({});
     }
 
-    if (satietyManager) {
-      await satietyManager.setEnabled(appConfig.AUTO_USE_BERRY_ENABLED.defaultValue);
-    }
-
     toast.success('所有设置已清空');
-
+    eventBus.emit(EVENTS.SETTINGS_UPDATED);
     onClose();
     location.reload();
   };

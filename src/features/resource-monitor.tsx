@@ -4,7 +4,7 @@
  */
 
 import { render } from 'preact';
-import { logger, toast, dataCache, ws } from '@/core';
+import { logger, toast, dataCache, ws, eventBus, EVENTS } from '@/core';
 import type { PanelButton } from '@/types';
 import { DEFAULT_RESOURCES } from '@/config/defaults';
 import type { MonitorType, ResourceConfig, ResourceCategory } from '@/config/defaults';
@@ -99,6 +99,7 @@ class ResourceMonitor {
   constructor() {
     this.resources = this.flattenCategories(DEFAULT_RESOURCES);
     void this.init();
+    eventBus.on(EVENTS.SETTINGS_UPDATED, () => this.reload());
   }
 
   private async init(): Promise<void> {
@@ -350,22 +351,11 @@ class ResourceMonitor {
     return this.autoBuyEnabled;
   }
 
-  async setEnabled(enabled: boolean): Promise<void> {
-    if (this.enabled === enabled) return;
-
-    this.enabled = enabled;
-    await appConfig.RESOURCE_MONITOR_ENABLED.set(enabled);
-    logger.info(`资源监控已${enabled ? '启用' : '禁用'}`);
-
-    window.dispatchEvent(new Event('settings-updated'));
-  }
-
-  async setAutoBuyEnabled(enabled: boolean): Promise<void> {
-    if (this.autoBuyEnabled === enabled) return;
-
-    this.autoBuyEnabled = enabled;
-    await appConfig.AUTO_BUY_BASE_RESOURCES.set(enabled);
-    logger.info(`自动购买基础资源已${enabled ? '启用' : '禁用'}`);
+  async reload(): Promise<void> {
+    this.enabled = await appConfig.RESOURCE_MONITOR_ENABLED.get();
+    this.autoBuyEnabled = await appConfig.AUTO_BUY_BASE_RESOURCES.get();
+    this.resources = await this.loadResources();
+    logger.info('资源监控配置已刷新');
   }
 }
 

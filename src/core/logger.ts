@@ -3,6 +3,8 @@
  * 支持多级别日志输出和日志级别过滤
  */
 
+import { eventBus, EVENTS } from './event-bus';
+
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'success' | 'none';
 
 interface LogConfig {
@@ -24,12 +26,21 @@ const LOG_CONFIGS: Record<LogLevel, LogConfig> = {
 class Logger {
   private minLevel: LogLevel = 'none';
 
+  constructor() {
+    eventBus.on(EVENTS.SETTINGS_UPDATED, () => this.reload());
+  }
+
   setMinLevel(level: LogLevel): void {
     this.minLevel = level;
   }
 
   getMinLevel(): LogLevel {
     return this.minLevel;
+  }
+
+  async reload(): Promise<void> {
+    const { appConfig } = await import('@/config/gm-settings');
+    this.minLevel = await appConfig.LOG_LEVEL.get();
   }
 
   private shouldLog(level: LogLevel): boolean {

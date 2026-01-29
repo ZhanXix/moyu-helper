@@ -3,7 +3,7 @@
  * 自动刷新和执行游戏任务
  */
 
-import { toast, ws, logger } from '@/core';
+import { toast, ws, logger, eventBus, EVENTS } from '@/core';
 import { appConfig } from '@/config/gm-settings';
 import { analytics } from '@/utils';
 
@@ -34,6 +34,7 @@ class QuestManager {
   async init(): Promise<void> {
     this.config.goldLimit = await appConfig.QUEST_GOLD_LIMIT.get();
     this.config.selectedTasks = await appConfig.QUEST_SELECTED_TASKS.get();
+    eventBus.on(EVENTS.SETTINGS_UPDATED, () => this.reload());
   }
 
   private isValidQuest(quest: Quest): boolean {
@@ -230,6 +231,12 @@ class QuestManager {
     this.config.selectedTasks = tasks;
     await appConfig.QUEST_SELECTED_TASKS.set(tasks);
     logger.info('任务选择已更新');
+  }
+
+  async reload(): Promise<void> {
+    this.config.goldLimit = await appConfig.QUEST_GOLD_LIMIT.get();
+    this.config.selectedTasks = await appConfig.QUEST_SELECTED_TASKS.get();
+    logger.info('任务管理配置已刷新');
   }
 }
 

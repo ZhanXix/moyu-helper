@@ -45,3 +45,14 @@ class EventBus {
 }
 
 export const eventBus = new EventBus();
+
+/**
+ * 事件常量定义
+ * 统一管理所有事件名称
+ */
+export const EVENTS = {
+  /** 设置更新事件 - 当用户保存设置时触发 */
+  SETTINGS_UPDATED: 'settings:updated',
+} as const;
+
+export type EventName = (typeof EVENTS)[keyof typeof EVENTS];
