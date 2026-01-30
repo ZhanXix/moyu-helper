@@ -265,7 +265,7 @@ class CraftManager {
 
       this.progressToast.hide();
       toast.success(`已提交 ${optimized.length} 个制造任务`);
-      analytics.track('制造', 'player-craft', `${optimized.length}个任务`);
+      analytics.track('制造', 'player_craft', `${optimized.length}个任务`);
     } catch (error) {
       logger.error('制造失败', error);
       toast.error('制造失败');
@@ -344,6 +344,7 @@ class CraftManager {
       this.progressToast?.hide();
       const taskCount = addedDefaultTask ? tasks.length + 1 : tasks.length;
       toast.success(`🐱 ${kittyName} 已提交 ${taskCount} 个任务`);
+      analytics.track('制造', 'kitty_craft', `${kittyName}-${taskCount}个任务`);
     } catch (error) {
       logger.error(`🐱 ${kittyName} 制造失败`, error);
       toast.error('制造失败');

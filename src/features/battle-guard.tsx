@@ -75,7 +75,7 @@ class BattleGuard {
     try {
       await ws.send('msgPref:battle:set', { enable: false });
       logger.success('[战斗防护] 战斗已禁用');
-      analytics.track('战斗防护', 'disable-battle', '成功');
+      analytics.track('战斗防护', 'disable_battle', '成功');
       this.isMessageSent = true;
       this.retryCount = 0;
       this.scheduleCheck();

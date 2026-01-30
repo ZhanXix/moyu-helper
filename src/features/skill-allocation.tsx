@@ -801,7 +801,7 @@ class SkillAllocationManager {
       }
 
       logger.success(`自动加点完成: 总点数=${totalPoints}, 剩余=${totalPoints - totalUsedPoints}`);
-      analytics.track('技能分配', 'auto-allocate', `${strategy}-${specialty}`);
+      analytics.track('技能分配', 'auto_allocate', `${strategy}-${specialty}`);
 
       return { allocation: result.allocation, summary: result.summary };
     } catch (error) {

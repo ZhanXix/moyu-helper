@@ -67,7 +67,7 @@ class AlchemyManager {
       await ws.sendAndListen('alchemy:auto:create', alchemyData, 'alchemy:auto:create:success', 30000);
 
       toast.success(`✅ 炼金任务提交成功！`);
-      analytics.track('炼金', 'quick-alchemy-success', `${getCachedResourceName(item.id)} x${times}`);
+      analytics.track('炼金', 'quick_alchemy_success', `${getCachedResourceName(item.id)} x${times}`);
     } catch (error) {
       logger.error('炼金失败', error);
       toast.error('炼金任务提交失败');

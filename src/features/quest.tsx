@@ -213,7 +213,7 @@ class QuestManager {
 
       await this.startQuests(uniqueQuests);
       progress.hide();
-      analytics.track('任务', 'refresh-quest', `${uniqueQuests.length}个`);
+      analytics.track('任务', 'refresh_quest', `${uniqueQuests.length}个`);
     } catch (error) {
       logger.error('任务处理失败', error);
       progress.hide();

@@ -250,6 +250,7 @@ class ResourceMonitor {
     if (!this.autoBuyEnabled || !this.nameToIdCache) return false;
 
     let hasBought = false;
+    const boughtItems: string[] = [];
 
     for (const item of problematicItems) {
       if (item.type !== 'insufficient') continue;
@@ -262,12 +263,16 @@ class ResourceMonitor {
         try {
           await ws.send('requestShopBuyResource', { id: resourceId, count: needed });
           logger.info(`自动购买基础资源: ${item.name} x${needed}`);
-          analytics.track('资源监控', 'auto-buy', `${item.name}x${needed}`);
+          boughtItems.push(`${item.name}x${needed}`);
           hasBought = true;
         } catch (error) {
           logger.error(`购买 ${item.name} 失败`, error);
         }
       }
+    }
+
+    if (hasBought) {
+      analytics.track('资源监控', 'auto_buy', boughtItems.join(', '));
     }
 
     return hasBought;
