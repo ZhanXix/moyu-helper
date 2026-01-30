@@ -20,13 +20,13 @@ export const ALCHEMY_RECIPES: AlchemyItem[] = [
   {
     id: 'pure_monster_essence_lv1',
     name: '战力精华Lv1',
-    recipes: [{ recipeIndex: 0, inputs: { '(monster_essence_lv1)': { count: 12 }, mysticalEssence: { count: 5 } } }],
+    recipes: [{ recipeIndex: 0, inputs: { '(monster_essence_lv1)': { count: 32 }, mysticalEssence: { count: 5 } } }],
     category: 'essence',
   },
   {
     id: 'pure_monster_essence_lv2',
     name: '战力精华Lv2',
-    recipes: [{ recipeIndex: 0, inputs: { '(monster_essence_lv2)': { count: 12 }, mysticalEssence: { count: 5 } } }],
+    recipes: [{ recipeIndex: 0, inputs: { '(monster_essence_lv2)': { count: 24 }, mysticalEssence: { count: 5 } } }],
     category: 'essence',
   },
   {

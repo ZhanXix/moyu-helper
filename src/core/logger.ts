@@ -4,6 +4,7 @@
  */
 
 import { eventBus, EVENTS } from './event-bus';
+import { appConfig } from '@/config/gm-settings';
 
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'success' | 'none';
 
@@ -39,7 +40,6 @@ class Logger {
   }
 
   async reload(): Promise<void> {
-    const { appConfig } = await import('@/config/gm-settings');
     this.minLevel = await appConfig.LOG_LEVEL.get();
   }
 

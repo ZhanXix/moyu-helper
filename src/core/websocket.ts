@@ -136,10 +136,16 @@ class WebSocketMonitor {
       }, timeout);
 
       const handler = (eventData: any) => {
-        if (condition(eventData)) {
+        try {
+          if (condition(eventData)) {
+            clearTimeout(timer);
+            eventBus.off(eventName, handler);
+            resolve();
+          }
+        } catch (error) {
           clearTimeout(timer);
           eventBus.off(eventName, handler);
-          resolve();
+          reject(error);
         }
       };
       eventBus.on(eventName, handler);
