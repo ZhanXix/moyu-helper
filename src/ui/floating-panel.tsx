@@ -7,12 +7,12 @@ import type { PanelButton } from '@/types';
 import { logger } from '@/core';
 
 const STYLES = `
-.mh-fab{position:fixed;bottom:calc(var(--spacing) * 25);z-index:1001;width:60px;height:60px;border-radius:50%;border:none;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.08);color:#6366f1;font-size:20px;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1)}
-.mh-fab-menu{position:fixed;bottom:calc(var(--spacing) * 25 + 68px);z-index:1002;width:180px;max-height:calc(100vh - var(--spacing) * 25 - 88px);background:#fff;border-radius:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 8px 28px rgba(0,0,0,.12);padding:8px;opacity:0;transform:translateY(12px) scale(.95);pointer-events:none;transition:all .25s cubic-bezier(.4,0,.2,1);overflow-y:auto}
+.mh-fab{position:fixed;bottom:calc(var(--spacing) * 25);z-index:9999;width:60px;height:60px;border-radius:50%;border:none;background:#fff;box-shadow:0 4px 16px rgba(0,0,0,.12),0 2px 8px rgba(0,0,0,.08);color:#6366f1;font-size:20px;cursor:pointer;transition:all .3s cubic-bezier(.4,0,.2,1)}
+.mh-fab-menu{position:fixed;bottom:calc(var(--spacing) * 25 + 68px);z-index:10000;width:180px;max-height:calc(100vh - var(--spacing) * 25 - 88px);background:#fff;border-radius:12px;border:1px solid rgba(0,0,0,.08);box-shadow:0 8px 28px rgba(0,0,0,.12);padding:8px;opacity:0;transform:translateY(12px) scale(.95);pointer-events:none;transition:all .25s cubic-bezier(.4,0,.2,1);overflow-y:auto}
 .mh-fab-menu.open{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
 .mh-fab-menu.modal-mode{position:fixed;top:50%;left:50%;bottom:auto;right:auto;transform:translate(-50%,-50%) scale(.95);width:90%;max-width:280px;max-height:80vh;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.15);padding:12px;overflow-y:auto}
 .mh-fab-menu.modal-mode.open{transform:translate(-50%,-50%) scale(1)}
-.mh-fab-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;opacity:0;pointer-events:none;transition:opacity .3s ease}
+.mh-fab-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:9999;opacity:0;pointer-events:none;transition:opacity .3s ease}
 .mh-fab-overlay.show{opacity:1;pointer-events:auto}
 .mh-fab-item{width:100%;padding:12px 16px;border:none;border-radius:8px;background:transparent;color:#333;font-size:14px;text-align:left;cursor:pointer;transition:all .15s ease;margin-bottom:4px}
 .mh-fab-item:hover{background:#f8f9fa;transform:translateX(-2px)}

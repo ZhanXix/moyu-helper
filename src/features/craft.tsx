@@ -564,7 +564,7 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
               key={kitty.uuid}
               variant="kitty"
               onClick={() => handleKittyCraft(kitty.uuid, kitty.name || `猫咪${index + 1}`, index)}
-              style={{ flex: 1, padding: '12px' }}
+              style={{ flex: 1 }}
             >
               🐱 {kitty.name || `猫咪${index + 1}`}
             </Button>
@@ -582,7 +582,7 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
               key={kitty.uuid}
               variant="secondary"
               onClick={() => handleClearKittyTasks(kitty.uuid, kitty.name || `猫咪${index + 1}`)}
-              style={{ flex: 1, padding: '8px 12px' }}
+              style={{ flex: 1 }}
             >
               🐱 {kitty.name || `猫咪${index + 1}`}
             </Button>

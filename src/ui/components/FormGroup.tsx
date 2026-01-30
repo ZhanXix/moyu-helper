@@ -11,15 +11,15 @@ interface FormGroupProps {
 }
 
 const FORM_GROUP_STYLE: JSX.CSSProperties = {
-  marginBottom: '16px',
+  marginBottom: '12px',
 };
 
 const LABEL_STYLE: JSX.CSSProperties = {
   display: 'block',
-  fontSize: '13px',
+  fontSize: '12px',
   fontWeight: '600',
   color: '#333',
-  marginBottom: '6px',
+  marginBottom: '5px',
 };
 
 export function FormGroup({ label, children, style = {}, className = '' }: FormGroupProps) {

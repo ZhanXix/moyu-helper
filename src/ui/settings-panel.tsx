@@ -191,18 +191,23 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
           />
         </Row>
 
-        <div style={{ marginTop: '15px' }}>
-          <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '10px' }}>选择要保留的任务类型:</div>
-          {Object.entries(QUEST_TASK_TYPES).map(([category, tasks]) => (
+        <div style={{ marginTop: '12px' }}>
+          <div style={{ fontSize: '13px', fontWeight: 'bold', marginBottom: '8px' }}>选择要保留的任务类型:</div>
+          {Object.entries(QUEST_TASK_TYPES).map(([category, tasks]) => {
+            const selectedTasks = tasks.filter((t) => settings[appConfig.QUEST_SELECTED_TASKS.key]?.[category]?.[t]);
+            const allSelected = selectedTasks.length === tasks.length;
+            const someSelected = selectedTasks.length > 0 && !allSelected;
+
+            return (
             <div
               key={category}
-              style={{ marginBottom: '10px', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}
+              style={{ marginBottom: '8px', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}
             >
               <div
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  padding: '8px 12px',
+                  padding: '6px 10px',
                   background: '#f5f5f5',
                   cursor: 'pointer',
                   gap: '8px',
@@ -215,7 +220,8 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
                 }
               >
                 <Checkbox
-                  checked={tasks.every((t) => settings[appConfig.QUEST_SELECTED_TASKS.key]?.[category]?.[t])}
+                  checked={allSelected}
+                  indeterminate={someSelected}
                   onChange={(checked) => {
                     updateSetting(appConfig.QUEST_SELECTED_TASKS.key, {
                       ...settings[appConfig.QUEST_SELECTED_TASKS.key],
@@ -230,7 +236,7 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
               </div>
 
               {expandedCategories[category] && (
-                <div style={{ padding: '8px 12px 8px 32px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <div style={{ padding: '6px 10px 6px 28px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
                   {tasks.map((task) => (
                     <Checkbox
                       key={task}
@@ -251,7 +257,7 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
                 </div>
               )}
             </div>
-          ))}
+          );})}
         </div>
       </Card>
 

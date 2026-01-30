@@ -2,7 +2,7 @@ import { render } from 'preact';
 import { useEffect, useRef } from 'preact/hooks';
 
 const TOAST_STYLES = `
-.mh-toast-container{position:fixed;top:20px;left:50%;transform:translateX(-50%);width:90%;max-width:600px;z-index:9000;pointer-events:none}
+.mh-toast-container{position:fixed;top:20px;left:50%;transform:translateX(-50%);width:90%;max-width:600px;z-index:10100;pointer-events:none}
 .mh-toast{min-width:300px;margin:0 auto 10px;padding:16px 20px 19px;background:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;gap:12px;pointer-events:auto;animation:mhSlideIn .3s ease;position:relative;overflow:hidden}
 .mh-toast.removing{animation:mhSlideOut .3s ease forwards}
 .mh-toast-msg{flex:1;font-size:14px;color:#333;line-height:1.5;word-break:break-word}

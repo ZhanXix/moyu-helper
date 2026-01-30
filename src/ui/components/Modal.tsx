@@ -20,7 +20,7 @@ const OVERLAY_STYLE: JSX.CSSProperties = {
   position: 'fixed',
   inset: 0,
   background: 'rgba(0, 0, 0, 0.4)',
-  zIndex: 2000,
+  zIndex: 10000,
   opacity: 0,
   transition: 'opacity 0.3s ease',
 };
@@ -40,11 +40,11 @@ const PANEL_STYLE: JSX.CSSProperties = {
   flexDirection: 'column',
   opacity: 0,
   transition: 'opacity 0.3s ease',
-  zIndex: 2001,
+  zIndex: 10001,
 };
 
 const HEADER_STYLE: JSX.CSSProperties = {
-  padding: '18px 20px',
+  padding: '14px 16px',
   borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
   display: 'flex',
   justifyContent: 'space-between',
@@ -62,10 +62,10 @@ const CLOSE_BTN_STYLE: JSX.CSSProperties = {
   background: 'transparent',
   border: 'none',
   color: '#666',
-  fontSize: '24px',
+  fontSize: '20px',
   cursor: 'pointer',
-  width: '32px',
-  height: '32px',
+  width: '28px',
+  height: '28px',
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
@@ -74,8 +74,8 @@ const CLOSE_BTN_STYLE: JSX.CSSProperties = {
 };
 
 const CONTENT_STYLE: JSX.CSSProperties = {
-  padding: '20px',
-  paddingBottom: '20px',
+  padding: '16px',
+  paddingBottom: '16px',
   overflowY: 'auto',
   flex: 1,
 };

@@ -11,6 +11,7 @@ interface CheckboxProps {
   className?: string;
   disabled?: boolean;
   onClick?: (e: Event) => void;
+  indeterminate?: boolean;
 }
 
 const CONTAINER_STYLE: JSX.CSSProperties = {
@@ -35,7 +36,7 @@ const CHECKBOX_STYLE: JSX.CSSProperties = {
   backgroundColor: '#fff',
 };
 
-export function Checkbox({ checked, onChange, label, style = {}, className = '', disabled = false, onClick }: CheckboxProps) {
+export function Checkbox({ checked, onChange, label, style = {}, className = '', disabled = false, onClick, indeterminate = false }: CheckboxProps) {
   const handleChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
     if (onChange) {
@@ -51,11 +52,11 @@ export function Checkbox({ checked, onChange, label, style = {}, className = '',
 
   const checkboxStyle = {
     ...CHECKBOX_STYLE,
-    ...(checked
+    ...(checked || indeterminate
       ? {
-          backgroundColor: '#6366f1',
-          borderColor: '#6366f1',
-          boxShadow: 'inset 0 0 0 2px #fff',
+          backgroundColor: indeterminate ? '#94a3b8' : '#6366f1',
+          borderColor: indeterminate ? '#94a3b8' : '#6366f1',
+          boxShadow: indeterminate ? 'inset 0 0 0 2px #fff, inset 0 2px 0 2px #94a3b8' : 'inset 0 0 0 2px #fff',
         }
       : {}),
   };

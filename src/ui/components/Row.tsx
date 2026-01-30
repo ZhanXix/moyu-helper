@@ -15,13 +15,13 @@ interface RowProps {
 const ROW_STYLE: JSX.CSSProperties = {
   display: 'flex',
   alignItems: 'center',
-  marginBottom: '10px',
+  marginBottom: '8px',
 };
 
 const LABEL_STYLE: JSX.CSSProperties = {
-  fontSize: '13px',
+  fontSize: '12px',
   color: '#666',
-  minWidth: '80px',
+  minWidth: '100px',
 };
 
 export function Row({ label, children, align = 'space-between', gap = 8, style = {}, className = '' }: RowProps) {

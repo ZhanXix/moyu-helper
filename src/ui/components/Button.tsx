@@ -15,10 +15,10 @@ interface ButtonProps {
 
 const BUTTON_STYLES: Record<string, JSX.CSSProperties> = {
   base: {
-    padding: '11px 20px',
+    padding: '8px 14px',
     border: 'none',
     borderRadius: '8px',
-    fontSize: '14px',
+    fontSize: '12px',
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'all 0.2s ease',
@@ -26,6 +26,9 @@ const BUTTON_STYLES: Record<string, JSX.CSSProperties> = {
     WebkitAppearance: 'none',
     appearance: 'none',
     WebkitTapHighlightColor: 'transparent',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
   },
   primary: {
     background: '#6366f1',
@@ -43,7 +46,6 @@ const BUTTON_STYLES: Record<string, JSX.CSSProperties> = {
   kitty: {
     background: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
     color: 'white',
-    fontWeight: '600',
   },
   disabled: {
     opacity: 0.5,

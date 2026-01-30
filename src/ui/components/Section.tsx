@@ -13,12 +13,12 @@ interface SectionProps {
 }
 
 const SECTION_STYLE: JSX.CSSProperties = {
-  marginBottom: '14px',
+  marginBottom: '10px',
   overflow: 'hidden',
 };
 
 const TITLE_STYLE: JSX.CSSProperties = {
-  fontSize: '13px',
+  fontSize: '12px',
   fontWeight: '600',
   margin: 0,
   letterSpacing: '-0.2px',
@@ -26,8 +26,8 @@ const TITLE_STYLE: JSX.CSSProperties = {
   userSelect: 'none',
   display: 'flex',
   alignItems: 'center',
-  gap: '8px',
-  padding: '10px 12px',
+  gap: '6px',
+  padding: '8px 10px',
   background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
   borderRadius: '8px',
   color: 'white',
@@ -35,7 +35,7 @@ const TITLE_STYLE: JSX.CSSProperties = {
 };
 
 const ARROW_STYLE: JSX.CSSProperties = {
-  fontSize: '12px',
+  fontSize: '10px',
   transition: 'transform 0.3s ease',
   display: 'inline-block',
 };
@@ -43,7 +43,7 @@ const ARROW_STYLE: JSX.CSSProperties = {
 const CONTENT_STYLE: JSX.CSSProperties = {
   overflow: 'hidden',
   transition: 'max-height 0.3s ease, opacity 0.3s ease',
-  marginTop: '10px',
+  marginTop: '8px',
   padding: '0 2px',
 };
 
