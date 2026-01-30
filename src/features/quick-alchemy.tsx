@@ -68,6 +68,7 @@ function AlchemyPanelContent({ onClose }: AlchemyPanelProps) {
     required: number;
     available: number;
   }> | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const loadInventory = async () => {
@@ -224,7 +225,13 @@ function AlchemyPanelContent({ onClose }: AlchemyPanelProps) {
       }
     }
 
-    await alchemyManager.quickAlchemy(selectedRecipe, finalInputs, times);
+    setIsSubmitting(true);
+    try {
+      await alchemyManager.quickAlchemy(selectedRecipe, finalInputs, times);
+      onClose();
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const selectedRecipeData = ALCHEMY_RECIPES.find((r) => r.id === selectedRecipe);
@@ -307,11 +314,11 @@ function AlchemyPanelContent({ onClose }: AlchemyPanelProps) {
       )}
 
       <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-        <Button variant="secondary" onClick={onClose} style={{ flex: 1 }}>
+        <Button variant="secondary" onClick={onClose} style={{ flex: 1 }} disabled={isSubmitting}>
           取消
         </Button>
-        <Button onClick={handleSubmit} style={{ flex: 1 }}>
-          提交
+        <Button onClick={handleSubmit} style={{ flex: 1 }} disabled={isSubmitting}>
+          {isSubmitting ? '提交中...' : '提交'}
         </Button>
       </div>
     </>
