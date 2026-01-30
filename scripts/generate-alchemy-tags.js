@@ -3,20 +3,20 @@
  * 复制输出结果到 quick-alchemy.tsx 中
  */
 
-(function() {
+(function () {
   function parseAlchemyTags(tagStr) {
     const match = tagStr.match(/^\(([^)]+)\)$/);
     if (!match) return [];
-    
-    const tags = match[1].split(',').map(t => t.trim());
-    const resources = unsafeWindow.tAllGameResource;
+
+    const tags = match[1].split(',').map((t) => t.trim());
+    const resources = window.tAllGameResource;
     if (!resources) return [];
-    
+
     return Object.entries(resources)
       .filter(([_, res]) => {
         const alchemyTag = res?.alchemyTag;
         if (!alchemyTag || !Array.isArray(alchemyTag)) return false;
-        return tags.every(tag => alchemyTag.includes(tag));
+        return tags.every((tag) => alchemyTag.includes(tag));
       })
       .map(([key, res]) => ({ id: key, name: res.name }));
   }
@@ -36,20 +36,17 @@
     '(monster_essence_lv1)',
     '(monster_essence_lv2)',
     '(monster_essence_lv3)',
-    '(monster_essence_lv4)'
+    '(monster_essence_lv4)',
   ];
 
   const result = {};
-  
-  tags.forEach(tag => {
+
+  tags.forEach((tag) => {
     const matches = parseAlchemyTags(tag);
-    result[tag] = matches.map(m => m.id);
+    result[tag] = matches.map((m) => m.id);
     console.log(`\n${tag}:`);
-    matches.forEach(m => console.log(`  - ${m.id}: ${m.name}`));
+    matches.forEach((m) => console.log(`  - ${m.id}: ${m.name}`));
   });
 
-  console.log('\n\n=== 复制以下配置到代码中 ===\n');
-  console.log(JSON.stringify(result, null, 2));
-  
   return result;
 })();
