@@ -75,8 +75,9 @@ class WebSocketMonitor {
   once(event: string | string[], handler: EventHandler): Unsubscribe {
     const events = Array.isArray(event) ? event : [event];
     const wrapper = (data: WebSocketMessage) => {
-      handler(data);
+      // 先清理所有事件的监听器，避免重复触发
       events.forEach((evt) => this.handlers.get(evt)?.delete(wrapper));
+      handler(data);
     };
     return this.on(event, wrapper);
   }
@@ -95,12 +96,14 @@ class WebSocketMonitor {
     });
   }
 
-  async sendAndListen(sendEvent: string, data?: any, timeout?: number): Promise<WebSocketMessage>;
-  async sendAndListen(sendEvent: string, data: any, listenEvent: string | string[], timeout?: number): Promise<WebSocketMessage>;
-  async sendAndListen(sendEvent: string, data: any = {}, listenEventOrTimeout?: string | string[] | number, timeout?: number): Promise<WebSocketMessage> {
-    const listenEvent = typeof listenEventOrTimeout === 'number' ? `${sendEvent}:success` : (listenEventOrTimeout ?? `${sendEvent}:success`);
-    const actualTimeout = typeof listenEventOrTimeout === 'number' ? listenEventOrTimeout : timeout;
-    const promise = this.awaitOnce(listenEvent, actualTimeout);
+  async sendAndListen(sendEvent: string, data: any = {}, timeout?: number): Promise<WebSocketMessage> {
+    const promise = this.awaitOnce([`${sendEvent}:success`, `${sendEvent}:fail`], timeout);
+    await this.send(sendEvent, data);
+    return promise;
+  }
+
+  async sendAndListenCustom(sendEvent: string, listenEvent: string | string[], data: any = {}, timeout?: number): Promise<WebSocketMessage> {
+    const promise = this.awaitOnce(listenEvent, timeout);
     await this.send(sendEvent, data);
     return promise;
   }

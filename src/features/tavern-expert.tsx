@@ -5,7 +5,6 @@
 
 import { logger, toast, ws, dataCache } from '@/core';
 import type { TavernExpert } from '@/types/game-data';
-import { analytics } from '@/utils';
 
 class TavernExpertManager {
   private isLoading = false;

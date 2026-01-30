@@ -651,7 +651,7 @@ class SkillAllocationManager {
 
   async allocate(nodeId: string, treeId: string = 'life'): Promise<SkillAllocationSummary> {
     const timeoutMs = 8000;
-    const responsePromise = ws.sendAndListen('skillTree:allocate', { treeId, nodeId }, 'skillTree:summary:success');
+    const responsePromise = ws.sendAndListenCustom('skillTree:allocate', 'skillTree:summary:success', { treeId, nodeId });
     let response: any;
     try {
       response = await Promise.race([
@@ -701,7 +701,7 @@ class SkillAllocationManager {
       // 先获取技能树摘要,等待响应后再进行后续操作
       logger.info('获取技能树摘要...');
       const timeoutMs = 10000;
-      const summaryPromise = ws.sendAndListen('skillTree:summary', { treeId }, 'skillTree:summary:success');
+      const summaryPromise = ws.sendAndListenCustom('skillTree:summary', 'skillTree:summary:success', { treeId });
       let summaryResponse: any;
       try {
         summaryResponse = await Promise.race([
