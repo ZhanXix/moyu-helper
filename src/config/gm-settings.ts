@@ -67,6 +67,7 @@ export const appConfig = {
     },
   }),
   QUEST_FIRST_RUN: createGMConfigSetting('quest_first_run', true),
+  QUEST_AUTO_EXECUTE: createGMConfigSetting('quest_auto_execute', true),
 
   // 功能开关
   BATTLE_GUARD_ENABLED: createGMConfigSetting('battle_guard_enabled', false),

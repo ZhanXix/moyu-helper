@@ -23,17 +23,20 @@ interface Quest {
 interface QuestManagerConfig {
   goldLimit: number;
   selectedTasks: Record<string, Record<string, boolean>>;
+  autoExecute: boolean;
 }
 
 class QuestManager {
   private config: QuestManagerConfig = {
     goldLimit: appConfig.QUEST_GOLD_LIMIT.defaultValue,
     selectedTasks: {},
+    autoExecute: appConfig.QUEST_AUTO_EXECUTE.defaultValue,
   };
 
   async init(): Promise<void> {
     this.config.goldLimit = await appConfig.QUEST_GOLD_LIMIT.get();
     this.config.selectedTasks = await appConfig.QUEST_SELECTED_TASKS.get();
+    this.config.autoExecute = await appConfig.QUEST_AUTO_EXECUTE.get();
     eventBus.on(EVENTS.SETTINGS_UPDATED, () => this.reload());
   }
 
@@ -145,7 +148,33 @@ class QuestManager {
 
     toast.success(`✅ 已添加 ${quests.length} 个任务到执行队列`);
     logger.success(`已添加 ${quests.length} 个任务`);
+  }
 
+  private getValidUniqueQuests(quests: Quest[]): Quest[] {
+    const validQuests = quests.filter((q) => q.status === 'PENDING' && this.isValidQuest(q));
+    return this.deduplicateQuests(validQuests);
+  }
+
+  private async handleQuestExecution(uniqueQuests: Quest[], progress: any): Promise<void> {
+    if (uniqueQuests.length === 0) {
+      progress.hide();
+      toast.info('没有符合条件的任务');
+      return;
+    }
+
+    if (this.config.autoExecute) {
+      progress.update('开始执行任务...');
+      await this.startQuests(uniqueQuests);
+      progress.hide();
+    } else {
+      progress.hide();
+      toast.confirm(
+        `任务刷新完成，共 ${uniqueQuests.length} 个任务待执行，是否立即执行？`,
+        async () => {
+          await this.startQuests(uniqueQuests);
+        },
+      );
+    }
   }
 
   async refreshCards(): Promise<void> {
@@ -188,12 +217,13 @@ class QuestManager {
       // 筛选需要刷新的任务
       const toReroll = quests.filter((q) => q.status === 'PENDING' && !this.isValidQuest(q));
 
+      // 如果不需要刷新，直接执行
       if (toReroll.length === 0) {
-        progress.update('所有任务已满足条件，开始执行...');
-        const validQuests = quests.filter((q) => q.status === 'PENDING' && this.isValidQuest(q));
-        const uniqueQuests = this.deduplicateQuests(validQuests);
-        await this.startQuests(uniqueQuests);
-        progress.hide();
+        const uniqueQuests = this.getValidUniqueQuests(quests);
+        await this.handleQuestExecution(uniqueQuests, progress);
+        if (uniqueQuests.length > 0) {
+          analytics.track('任务', 'refresh_quest', `${uniqueQuests.length}个`);
+        }
         return;
       }
 
@@ -206,14 +236,12 @@ class QuestManager {
       }
 
       // 获取最终任务列表并执行
-      progress.update('任务刷新完成，开始执行...');
       const finalQuests = await this.fetchQuests();
-      const validQuests = finalQuests.filter((q) => q.status === 'PENDING' && this.isValidQuest(q));
-      const uniqueQuests = this.deduplicateQuests(validQuests);
-
-      await this.startQuests(uniqueQuests);
-      progress.hide();
-      analytics.track('任务', 'refresh_quest', `${uniqueQuests.length}个`);
+      const uniqueQuests = this.getValidUniqueQuests(finalQuests);
+      await this.handleQuestExecution(uniqueQuests, progress);
+      if (uniqueQuests.length > 0) {
+        analytics.track('任务', 'refresh_quest', `${uniqueQuests.length}个`);
+      }
     } catch (error) {
       logger.error('任务处理失败', error);
       progress.hide();
@@ -236,6 +264,7 @@ class QuestManager {
   async reload(): Promise<void> {
     this.config.goldLimit = await appConfig.QUEST_GOLD_LIMIT.get();
     this.config.selectedTasks = await appConfig.QUEST_SELECTED_TASKS.get();
+    this.config.autoExecute = await appConfig.QUEST_AUTO_EXECUTE.get();
     logger.info('任务管理配置已刷新');
   }
 }

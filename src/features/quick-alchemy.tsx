@@ -78,7 +78,7 @@ function AlchemyPanelContent({ onClose }: AlchemyPanelProps) {
         const categoryLabel = recipe.category === 'essence' ? '精华' : '药水';
         return {
           value: recipe.id,
-          label: `[${categoryLabel}] ${recipe.name} (库存: ${count})`,
+          label: `[${categoryLabel}] ${recipe.name} (${count})`,
         };
       });
       setRecipeOptions(options);
@@ -113,7 +113,7 @@ function AlchemyPanelContent({ onClose }: AlchemyPanelProps) {
               .map((id) => ({
                 id,
                 count: inventory[id]?.count || 0,
-                label: `${getCachedResourceName(id)} (库存: ${inventory[id]?.count || 0})`,
+                label: `${getCachedResourceName(id)} (${inventory[id]?.count || 0})`,
               }))
               .sort((a, b) => b.count - a.count);
 
@@ -129,7 +129,7 @@ function AlchemyPanelContent({ onClose }: AlchemyPanelProps) {
                   .map((id) => {
                     const count = inventory[id]?.count || 0;
                     const name = getCachedResourceName(id);
-                    return { value: id, label: `${name} (库存: ${count})`, count };
+                    return { value: id, label: `${name} (${count})`, count };
                   })
                   .sort((a, b) => b.count - a.count);
                 setMaterialOptions(options);

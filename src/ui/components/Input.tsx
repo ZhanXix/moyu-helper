@@ -19,10 +19,10 @@ interface InputProps {
 
 const BASE_STYLE: JSX.CSSProperties = {
   width: '100%',
-  padding: '10px 12px',
+  padding: '6px 8px',
   border: '1px solid rgba(0, 0, 0, 0.12)',
-  borderRadius: '8px',
-  fontSize: '14px',
+  borderRadius: '6px',
+  fontSize: '13px',
   color: '#1a1a1a',
   background: '#ffffff',
   transition: 'all 0.2s ease',

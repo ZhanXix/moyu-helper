@@ -179,6 +179,13 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
             label="启用任务管理器"
           />
         </Row>
+        <Row>
+          <Checkbox
+            checked={settings[appConfig.QUEST_AUTO_EXECUTE.key]}
+            onChange={(v) => updateSetting(appConfig.QUEST_AUTO_EXECUTE.key, v)}
+            label="刷新后自动执行任务（不勾选则显示确认框）"
+          />
+        </Row>
         <Row label="金币限制">
           <Input
             type="number"
