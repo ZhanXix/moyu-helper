@@ -6,8 +6,9 @@ const TOAST_STYLES = `
 .mh-toast{min-width:300px;margin:0 auto 10px;padding:16px 20px 19px;background:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;gap:12px;pointer-events:auto;animation:mhSlideIn .3s ease;position:relative;overflow:hidden}
 .mh-toast.removing{animation:mhSlideOut .3s ease forwards}
 .mh-toast-msg{flex:1;font-size:14px;color:#333;line-height:1.5;word-break:break-word}
-.mh-toast-close{width:20px;height:20px;border:none;background:0 0;cursor:pointer;font-size:18px;color:#999;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s}
+.mh-toast-close{width:20px;height:20px;border:none;background:0 0;cursor:pointer;font-size:18px;color:#999;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:color .15s,background .15s,transform .15s}
 .mh-toast-close:hover{color:#333;background:rgba(0,0,0,.05);border-radius:50%;transform:scale(1.1)}
+.mh-toast-close:active{transform:scale(.95)}
 .mh-toast-progress{position:absolute;bottom:0;left:0;right:0;height:3px;background:currentColor;opacity:.8;width:100%;transition:width linear}
 .mh-toast.info{border:1px solid #3498db}.mh-toast.info .mh-toast-progress{color:#3498db}
 .mh-toast.success{border:1px solid #4caf50}.mh-toast.success .mh-toast-progress{color:#4caf50}
@@ -148,7 +149,10 @@ class Toast {
   }
 
   private remove(toast: HTMLElement, callback?: () => void): void {
-    toast.classList.add('removing');
+    const firstChild = toast.firstElementChild;
+    if (firstChild) {
+      firstChild.classList.add('removing');
+    }
     this.toastCount = Math.max(0, this.toastCount - 1);
     setTimeout(() => {
       toast.remove();
