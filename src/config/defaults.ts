@@ -33,12 +33,11 @@ export const DEFAULT_RESOURCES: ResourceCategory[] = [
   {
     name: '基础资源',
     items: {
-      berry: { threshold: 600000, type: 'insufficient' },
       fish: { threshold: 100000, type: 'insufficient' },
-      wood: { threshold: 1000000, type: 'insufficient' },
-      stone: { threshold: 1000000, type: 'insufficient' },
-      coal: { threshold: 1000000, type: 'insufficient' },
-      treasureMap: { threshold: 0, type: 'insufficient' },
+      wood: { threshold: 500000, type: 'insufficient' },
+      stone: { threshold: 500000, type: 'insufficient' },
+      sand: { threshold: 15000, type: 'insufficient' },
+      treasureMap: { threshold: 10000, type: 'insufficient' },
     },
   },
   {
@@ -46,53 +45,51 @@ export const DEFAULT_RESOURCES: ResourceCategory[] = [
     items: {
       paper: { threshold: 500, type: 'insufficient' },
       book: { threshold: 100, type: 'insufficient' },
-      pencil: { threshold: 5, type: 'insufficient' },
+      pencil: { threshold: 100, type: 'insufficient' },
+      glassBottles: { threshold: 1000, type: 'insufficient' },
+      ironCan: { threshold: 1000, type: 'insufficient' },
     },
   },
   {
     name: '食物',
     items: {
-      simpleSalad: { threshold: 2000, type: 'insufficient' },
-      fishSoup: { threshold: 96, type: 'insufficient' },
-      ryeBread: { threshold: 288, type: 'insufficient' },
-      custardPudding: { threshold: 96, type: 'insufficient' },
-      cloudFluffCandy: { threshold: 96, type: 'insufficient' },
-    },
-  },
-  {
-    name: '饮品',
-    items: {
-      berryWine: { threshold: 192, type: 'insufficient' },
-      dawnBlossomWine: { threshold: 48, type: 'insufficient' },
-      windBellWine: { threshold: 48, type: 'insufficient' },
+      custardPudding: { threshold: 250, type: 'insufficient' }, // 蛋奶布丁 - 畜牧专家、钓鱼专家、老师
+      berryWine: { threshold: 250, type: 'insufficient' }, // 浆果酒 - 钓鱼专家、强化专家、战场后勤
+      berryPie: { threshold: 50, type: 'insufficient' }, // 浆果派 - 强化专家
+      fishSoup: { threshold: 100, type: 'insufficient' }, // 鱼汤 - 老师
+      ryeBread: { threshold: 300, type: 'insufficient' }, // 黑麦面包 - 健身教练、卷王助教
+      milkManaShake: { threshold: 100, type: 'insufficient' }, // 浆果奶昔 - 健身教练
+      windBellMilkShake: { threshold: 50, type: 'insufficient' }, // 铃语奶昔 - 健身教练
+      simpleSalad: { threshold: 50, type: 'insufficient' }, // 野草沙拉 - 战场后勤
+      cloudFluffCandy: { threshold: 100, type: 'insufficient' }, // 软软棉花糖 - 卷王助教
+      dawnBlossomWine: { threshold: 100, type: 'insufficient' }, // 晨露精酿 - 卷王助教
+      windBellWine: { threshold: 100, type: 'insufficient' }, // 铃语精酿 - 卷王助教
     },
   },
   {
     name: '种子',
     items: {
-      berrySeed: { threshold: 500, type: 'insufficient' },
-      grapeSeed: { threshold: 500, type: 'insufficient' },
-      ryeSeed: { threshold: 500, type: 'insufficient' },
-      dawnBlossomSeed: { threshold: 500, type: 'insufficient' },
-      windBellHerbSeed: { threshold: 500, type: 'insufficient' },
+      grapeSeed: { threshold: 100, type: 'insufficient' },
+      ryeSeed: { threshold: 100, type: 'insufficient' },
+      dawnBlossomSeed: { threshold: 100, type: 'insufficient' },
+      windBellHerbSeed: { threshold: 100, type: 'insufficient' },
     },
   },
   {
     name: '猫咪用品',
     items: {
-      autoFeeder: { threshold: 3, type: 'insufficient' },
-      scratchingPost: { threshold: 3, type: 'insufficient' },
-      cashmereToy: { threshold: 3, type: 'insufficient' },
-      silkKittyNest: { threshold: 3, type: 'insufficient' },
-      silkCurtain: { threshold: 3, type: 'insufficient' },
+      autoFeeder: { threshold: 10, type: 'insufficient' },
+      scratchingPost: { threshold: 10, type: 'insufficient' },
+      cashmereToy: { threshold: 10, type: 'insufficient' },
+      silkKittyNest: { threshold: 10, type: 'insufficient' },
     },
   },
   {
     name: '其他',
     items: {
       nutrientEssence: { threshold: 10000, type: 'insufficient' },
-      moonPearl: { threshold: 5, type: 'excess' },
-      cutePoint: { threshold: 120, type: 'excess' },
+      moonPearl: { threshold: 50, type: 'excess' },
+      cutePoint: { threshold: 200, type: 'excess' },
     },
   },
 ];

@@ -43,11 +43,11 @@ export const appConfig = {
 
   // 自动使用浆果配置
   AUTO_USE_BERRY_ENABLED: createGMConfigSetting('auto_use_berry_enabled', false),
-  AUTO_USE_BERRY_THRESHOLD: createGMConfigSetting('auto_use_berry_threshold', 500000),
-  AUTO_USE_BERRY_TARGET: createGMConfigSetting('auto_use_berry_target', 600000),
+  AUTO_USE_BERRY_THRESHOLD: createGMConfigSetting('auto_use_berry_threshold', 900000),
+  AUTO_USE_BERRY_TARGET: createGMConfigSetting('auto_use_berry_target', 1000000),
   AUTO_USE_BERRY_FOOD_TYPE: createGMConfigSetting<'berry' | 'fish' | 'luxuryCatFood'>(
     'auto_use_berry_food_type',
-    'berry',
+    'fish',
   ),
 
   // 任务管理器配置
@@ -64,6 +64,7 @@ export const appConfig = {
       砍竹子: true,
       捡贝壳: true,
       挖沙: true,
+      收集云絮: true,
     },
   }),
   QUEST_FIRST_RUN: createGMConfigSetting('quest_first_run', true),

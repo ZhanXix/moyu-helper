@@ -165,6 +165,7 @@ class ResourceMonitor {
   async checkResources(persistent: boolean = true): Promise<void> {
     if (!this.enabled) {
       logger.debug('资源监控未启用');
+      toast.info('资源监控未启用，请在设置面板中启用后再进行检查', 3000);
       return;
     }
 
@@ -180,6 +181,7 @@ class ResourceMonitor {
     const gameResources = unsafeWindow.tAllGameResource;
     if (!gameResources) {
       logger.warn('游戏资源数据未加载');
+      toast.warning('游戏资源未加载，请稍后再试', 3000);
       return;
     }
 
@@ -196,9 +198,9 @@ class ResourceMonitor {
 
     const remainingItems = this.autoBuyEnabled
       ? problematicItems.filter((item) => {
-          const id = this.nameToIdCache?.get(item.name);
-          return item.type !== 'insufficient' || !id || !BASE_RESOURCES.includes(id as any);
-        })
+        const id = this.nameToIdCache?.get(item.name);
+        return item.type !== 'insufficient' || !id || !BASE_RESOURCES.includes(id as any);
+      })
       : problematicItems;
 
     const insufficientCount = remainingItems.filter((item) => item.type === 'insufficient').length;
@@ -254,7 +256,7 @@ class ResourceMonitor {
 
     for (const item of problematicItems) {
       if (item.type !== 'insufficient') continue;
-      
+
       const resourceId = this.nameToIdCache.get(item.name);
       if (!resourceId || !BASE_RESOURCES.includes(resourceId as any)) continue;
 
