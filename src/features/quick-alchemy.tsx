@@ -6,7 +6,7 @@ import { render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { logger, toast, ws, dataCache } from '@/core';
 import { Modal, FormGroup, Select, Input, Button } from '@/ui/components';
-import { analytics, getResourceName } from '@/utils';
+import { analytics, getResourceDetail } from '@/utils';
 import ESSENCE_CLASSIFICATION from '../../scripts/monster-essence-classification.json';
 
 interface AlchemyItem {
@@ -27,7 +27,7 @@ const nameCache = new Map<string, string>();
 
 function getCachedResourceName(id: string): string {
   if (!nameCache.has(id)) {
-    nameCache.set(id, getResourceName(id) || id);
+    nameCache.set(id, getResourceDetail(id)?.name || id);
   }
   return nameCache.get(id)!;
 }

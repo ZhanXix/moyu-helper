@@ -38,6 +38,7 @@ export const DEFAULT_RESOURCES: ResourceCategory[] = [
       wood: { threshold: 1000000, type: 'insufficient' },
       stone: { threshold: 1000000, type: 'insufficient' },
       coal: { threshold: 1000000, type: 'insufficient' },
+      treasureMap: { threshold: 0, type: 'insufficient' },
     },
   },
   {

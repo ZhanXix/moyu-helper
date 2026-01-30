@@ -16,6 +16,7 @@ import { type FoodType, QUEST_TASK_TYPES } from '@/config/defaults';
 import { appConfig } from '@/config/gm-settings';
 import { toast, eventBus, EVENTS } from '@/core';
 import { Modal, Card, Row, Input, Checkbox, Button, Select, Section } from './components';
+import { getResourceDetail } from '@/utils';
 
 interface ResourceConfig {
   threshold: number;
@@ -62,11 +63,6 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
   if (!settings) {
     return <div style={{ padding: '20px', textAlign: 'center' }}>加载中...</div>;
   }
-
-  const getResourceName = (id: string): string => {
-    const resources = unsafeWindow.tAllGameResource;
-    return resources?.[id]?.name || id;
-  };
 
   const updateResourceConfig = (id: string, field: 'threshold' | 'type', value: number | string) => {
     setResourceCategories((prev) =>
@@ -368,7 +364,7 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  <span style={{ flex: 1, fontSize: '11px', color: '#333' }}>{getResourceName(id)}</span>
+                  <span style={{ flex: 1, fontSize: '11px', color: '#333' }}>{getResourceDetail(id)?.name}</span>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
                     <Select
                       value={type}

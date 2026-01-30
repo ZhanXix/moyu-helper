@@ -39,14 +39,8 @@ type GameResourceCollection = Record<string, GameResourceItem>;
 declare const unsafeWindow: Window &
   typeof globalThis & {
     tAllGameResource: GameResourceCollection;
-    getResourceKey: {
-      (name: string): string | undefined;
-      (names: string[]): string[];
-    };
-    getResourceName: {
-      (key: string): string | undefined;
-      (keys: string[]): string[];
-    };
+    getResourceKey: (name: string) => string | undefined;
+    getResourceDetail: (key: string) => GameResourceItem | null;
   };
 
 // 油猴 API 类型声明
