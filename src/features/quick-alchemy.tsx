@@ -7,7 +7,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { logger, toast, ws, dataCache } from '@/core';
 import { Modal, FormGroup, Select, Input, Button } from '@/ui/components';
 import { analytics, getResourceDetail } from '@/utils';
-import ESSENCE_CLASSIFICATION from '../../scripts/monster-essence-classification.json';
+import ESSENCE_CLASSIFICATION from '@/config/monster-essence-classification.json';
 
 interface AlchemyItem {
   id: string;
@@ -222,9 +222,7 @@ function AlchemyPanelContent({ onClose }: AlchemyPanelProps) {
         }}
       >
         <div style={{ fontWeight: 'bold', marginBottom: '8px' }}>💡 功能说明</div>
-        <div>
-          • 选择要炼金的物品后，系统会自动加载对应等级的魔物精华
-        </div>
+        <div>• 选择要炼金的物品后，系统会自动加载对应等级的魔物精华</div>
         <div>• 默认选择库存最多的材料，也可手动切换</div>
         <div>• 材料需求：Lv1(32个) / Lv2(24个) / Lv3(12个) / Lv4(4个) + 神秘精华(5个)</div>
       </div>
@@ -235,7 +233,12 @@ function AlchemyPanelContent({ onClose }: AlchemyPanelProps) {
 
       {materialOptions.length > 0 && (
         <FormGroup label="选择材料">
-          <Select value={selectedMaterial} onChange={setSelectedMaterial} options={materialOptions} placeholder="-- 请选择材料 --" />
+          <Select
+            value={selectedMaterial}
+            onChange={setSelectedMaterial}
+            options={materialOptions}
+            placeholder="-- 请选择材料 --"
+          />
         </FormGroup>
       )}
 
@@ -270,7 +273,9 @@ function AlchemyPanelContent({ onClose }: AlchemyPanelProps) {
           <div
             style={{
               color:
-                materialPreview.mysticalEssence.required > materialPreview.mysticalEssence.available ? '#dc2626' : '#059669',
+                materialPreview.mysticalEssence.required > materialPreview.mysticalEssence.available
+                  ? '#dc2626'
+                  : '#059669',
             }}
           >
             • {materialPreview.mysticalEssence.name}: {materialPreview.mysticalEssence.required} 个 (库存:{' '}

@@ -13,17 +13,16 @@ const result = {};
 const lvPattern = /^monster_essence_lv(\d+)$/;
 
 Object.entries(itemsData).forEach(([itemId, item]) => {
-  if (item.alchemyTag && Array.isArray(item.alchemyTag)) {
-    item.alchemyTag.forEach(tag => {
-      const match = tag.match(lvPattern);
-      if (match) {
-        const key = tag; // monster_essence_lv1, monster_essence_lv2, etc.
-        if (!result[key]) {
-          result[key] = [];
-        }
-        result[key].push(itemId);
+  if (item.alchemyTag && Array.isArray(item.alchemyTag) && item.alchemyTag.length === 1) {
+    const tag = item.alchemyTag[0];
+    const match = tag.match(lvPattern);
+    if (match) {
+      const key = tag; // monster_essence_lv1, monster_essence_lv2, etc.
+      if (!result[key]) {
+        result[key] = [];
       }
-    });
+      result[key].push(itemId);
+    }
   }
 });
 
@@ -43,7 +42,7 @@ const sortedResult = Object.keys(result)
 console.log(JSON.stringify(sortedResult, null, 2));
 
 // 保存到文件
-const outputPath = path.join(__dirname, 'monster-essence-classification.json');
+const outputPath = path.join(__dirname, '..', 'src', 'config', 'monster-essence-classification.json');
 fs.writeFileSync(outputPath, JSON.stringify(sortedResult, null, 2));
 console.log(`\n结果已保存到: ${outputPath}`);
 
