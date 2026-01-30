@@ -1,7 +1,7 @@
 {
-  "name": "moyu-helper",
-  "version": "1.0.14-personal",
-  "description": "摸鱼助手 - 摸鱼放置游戏自动化辅助脚本",
+  "name": "moyu-helper-xz-personal",
+  "version": "1.0.14-xz-personal",
+  "description": "摸鱼助手 - 摸鱼放置游戏自动化辅助脚本 - 夕湛自用版",
   "type": "module",
   "packageManager": "yarn@1.22.22",
   "scripts": {
