@@ -46,8 +46,8 @@ export const DEFAULT_RESOURCES: ResourceCategory[] = [
       paper: { threshold: 500, type: 'insufficient' },
       book: { threshold: 100, type: 'insufficient' },
       pencil: { threshold: 100, type: 'insufficient' },
-      glassBottles: { threshold: 1000, type: 'insufficient' },
-      ironCan: { threshold: 1000, type: 'insufficient' },
+      glassBottles: { threshold: 1000, type: 'insufficient' }, // 玻璃瓶
+      ironCan: { threshold: 1000, type: 'insufficient' }, // 铁罐头
     },
   },
   {
@@ -64,6 +64,10 @@ export const DEFAULT_RESOURCES: ResourceCategory[] = [
       cloudFluffCandy: { threshold: 100, type: 'insufficient' }, // 软软棉花糖 - 卷王助教
       dawnBlossomWine: { threshold: 100, type: 'insufficient' }, // 晨露精酿 - 卷王助教
       windBellWine: { threshold: 100, type: 'insufficient' }, // 铃语精酿 - 卷王助教
+      luxuryCatFood: { threshold: 500, type: 'insufficient' }, // 豪华猫粮
+      honey: { threshold: 50000, type: 'insufficient' }, // 蜂蜜
+      chickenEgg: { threshold: 50000, type: 'insufficient' }, // 鸡蛋
+      milk: { threshold: 50000, type: 'insufficient' }, //牛奶
     },
   },
   {
