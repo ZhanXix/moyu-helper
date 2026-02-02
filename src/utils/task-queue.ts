@@ -7,6 +7,7 @@ import { toast } from '@/core/toast';
 import { logger } from '@/core/logger';
 import { eventBus, EVENTS } from '@/core/event-bus';
 import { appConfig } from '@/config/gm-settings';
+import { sleep } from '.';
 
 interface TaskQueueConfig {
   interval: number;
@@ -24,7 +25,7 @@ class TaskQueue {
   private queue: QueuedTask<any>[] = [];
   private processing = false;
   private taskCount = 0;
-  private countdownToast: any = null;
+  private countdownToast: boolean = false;
   private config: TaskQueueConfig;
 
   constructor(config: TaskQueueConfig) {
@@ -73,15 +74,14 @@ class TaskQueue {
 
   private async waitForBatch(): Promise<void> {
     const seconds = Math.floor(this.config.batchDelay / 1000);
-    this.countdownToast = toast.progress(`已执行 ${this.taskCount} 个任务，暂停 ${seconds} 秒...`);
+    toast.progress(`已执行 ${this.taskCount} 个任务，暂停 ${seconds} 秒...`);
 
     for (let i = seconds; i > 0; i--) {
-      this.countdownToast.update(`已执行 ${this.taskCount} 个任务，暂停 ${i} 秒...`);
-      await new Promise((r) => setTimeout(r, 1000));
+      toast.progress(`已执行 ${this.taskCount} 个任务，暂停 ${i} 秒...`);
+      await sleep(1000);
     }
 
-    this.countdownToast.hide();
-    this.countdownToast = null;
+    toast.hideProgress();
 
     // 自动重置计数器（如果队列为空）
     if (this.queue.length === 0) {
@@ -107,7 +107,7 @@ class TaskQueue {
           if (this.taskCount % this.config.batchSize === 0 && this.queue.length > 0) {
             await this.waitForBatch();
           } else if (this.config.interval > 0) {
-            await new Promise((r) => setTimeout(r, this.config.interval));
+            await sleep(this.config.interval);
           }
         } catch (error) {
           logger.error('任务执行失败', error);
@@ -124,8 +124,8 @@ class TaskQueue {
     this.queue = [];
     this.processing = false;
     this.taskCount = 0;
-    this.countdownToast?.hide();
-    this.countdownToast = null;
+    toast.hideProgress();
+    this.countdownToast = false;
     logger.info('任务队列已销毁');
   }
 

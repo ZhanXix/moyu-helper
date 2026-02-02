@@ -3,7 +3,7 @@ import { useEffect, useRef } from 'preact/hooks';
 
 const TOAST_STYLES = `
 .mh-toast-container{position:fixed;top:20px;left:50%;transform:translateX(-50%);width:90%;max-width:600px;z-index:10100;pointer-events:none}
-.mh-toast{min-width:300px;margin:0 auto 10px;padding:16px 20px 19px;background:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;gap:12px;pointer-events:auto;animation:mhSlideIn .3s ease;position:relative;overflow:hidden}
+.mh-toast{min-width:300px;margin:0 auto 10px;padding:16px 20px 19px;background:#fff;border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.15);display:flex;align-items:center;gap:12px;pointer-events:auto;animation:mhSlideIn .3s ease;position:relative;overflow:hidden;cursor:pointer}
 .mh-toast.removing{animation:mhSlideOut .3s ease forwards}
 .mh-toast-msg{flex:1;font-size:14px;color:#333;line-height:1.5;word-break:break-word}
 .mh-toast-close{width:20px;height:20px;border:none;background:0 0;cursor:pointer;font-size:18px;color:#999;padding:0;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:color .15s,background .15s,transform .15s}
@@ -58,7 +58,7 @@ function ToastComponent({ type, message, timeout, onClose, onConfirm }: ToastPro
   };
 
   return (
-    <div className={`mh-toast ${type}`}>
+    <div className={`mh-toast ${type}`} onClick={type !== 'confirm' ? onClose : undefined}>
       <div style={{ flex: 1 }}>
         <div className="mh-toast-msg" dangerouslySetInnerHTML={{ __html: message }} />
         {type === 'confirm' && (
@@ -107,10 +107,7 @@ function ProgressToastComponent({
   );
 }
 
-interface ProgressToast {
-  update(msg: string): void;
-  hide(): void;
-}
+
 
 type ToastType = 'info' | 'success' | 'warning' | 'error';
 
@@ -118,6 +115,7 @@ class Toast {
   private container: HTMLDivElement | null = null;
   private toastCount = 0;
   private readonly MAX_TOASTS = 5;
+  private currentProgressToast: HTMLElement | null = null;
 
   private getContainer(): HTMLDivElement {
     if (!this.container) {
@@ -165,45 +163,20 @@ class Toast {
   warning = (msg: string, timeout = 3000) => this.show('warning', msg, timeout);
   error = (msg: string, timeout = 3500) => this.show('error', msg, timeout);
 
-  progress(msg: string): ProgressToast {
+  progress(msg: string): void {
     const container = this.getContainer();
+    
+    // 如果已存在 progress，直接更新
+    if (this.currentProgressToast) {
+      render(<ProgressToastComponent message={msg} showClose={false} />, this.currentProgressToast);
+      return;
+    }
+
     const toast = document.createElement('div');
-    let isHidden = false;
-    let currentShowClose = false;
-    let timer: number | null = null;
-
-    const resetTimer = () => {
-      if (timer) clearTimeout(timer);
-      currentShowClose = false;
-      render(<ProgressToastComponent message={msg} showClose={currentShowClose} onClose={() => handleHide()} />, toast);
-      timer = window.setTimeout(() => {
-        currentShowClose = true;
-        render(<ProgressToastComponent message={msg} showClose={currentShowClose} onClose={() => handleHide()} />, toast);
-      }, 10000);
-    };
-
-    const handleHide = () => {
-      if (!isHidden) {
-        isHidden = true;
-        if (timer) clearTimeout(timer);
-        this.remove(toast);
-      }
-    };
-
-    render(<ProgressToastComponent message={msg} showClose={currentShowClose} onClose={() => handleHide()} />, toast);
+    render(<ProgressToastComponent message={msg} showClose={false} />, toast);
     container.appendChild(toast);
     this.toastCount++;
-    resetTimer();
-
-    return {
-      update: (newMsg: string) => {
-        if (!isHidden) {
-          msg = newMsg;
-          resetTimer();
-        }
-      },
-      hide: handleHide,
-    };
+    this.currentProgressToast = toast;
   }
 
   confirm(msg: string, onConfirm?: () => void, timeout?: number): void {
@@ -222,6 +195,13 @@ class Toast {
 
     container.appendChild(toast);
     this.toastCount++;
+  }
+
+  hideProgress(): void {
+    if (this.currentProgressToast) {
+      this.remove(this.currentProgressToast);
+      this.currentProgressToast = null;
+    }
   }
 }
 

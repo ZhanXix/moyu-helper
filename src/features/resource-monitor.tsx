@@ -9,7 +9,7 @@ import type { PanelButton } from '@/types';
 import { DEFAULT_RESOURCES } from '@/config/defaults';
 import type { MonitorType, ResourceConfig, ResourceCategory } from '@/config/defaults';
 import { appConfig } from '@/config/gm-settings';
-import { analytics } from '@/utils';
+import { analytics, debounce, sleep } from '@/utils';
 
 // ==================== 类型定义 ====================
 
@@ -95,6 +95,7 @@ class ResourceMonitor {
   private enabled = false;
   private autoBuyEnabled = false;
   private nameToIdCache: Map<string, string> | null = null;
+  private debouncedCheck = debounce((persistent: boolean) => this.performCheck(true, persistent), 500);
 
   constructor() {
     this.resources = this.flattenCategories(DEFAULT_RESOURCES);
@@ -170,7 +171,7 @@ class ResourceMonitor {
     }
 
     try {
-      await this.performCheck(true, persistent);
+      this.debouncedCheck(persistent);
     } catch (error) {
       logger.error('获取库存数据失败', error);
       toast.error('获取库存数据失败，请稍后重试');
@@ -192,7 +193,7 @@ class ResourceMonitor {
     const hasBought = await this.autoBuyBaseResources(problematicItems);
 
     if (hasBought) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      await sleep(500);
       problematicItems = await this.findProblematicItems(gameResources);
     }
 
@@ -222,6 +223,7 @@ class ResourceMonitor {
     const inventory = await dataCache.getAsync('inventory');
 
     for (const [id, config] of Object.entries(this.resources)) {
+      if (config.threshold === 0) continue;
       const count = inventory[id]?.count || 0;
       const isProblematic = config.type === 'insufficient' ? count < config.threshold : count >= config.threshold;
 
@@ -260,11 +262,12 @@ class ResourceMonitor {
       const resourceId = this.nameToIdCache.get(item.name);
       if (!resourceId || !BASE_RESOURCES.includes(resourceId as any)) continue;
 
-      const needed = item.threshold - item.count;
+      const targetAmount = Math.floor(item.threshold * 1.1);
+      const needed = targetAmount - item.count;
       if (needed > 0) {
         try {
           await ws.send('requestShopBuyResource', { id: resourceId, count: needed });
-          logger.info(`自动购买基础资源: ${item.name} x${needed}`);
+          logger.info(`自动购买基础资源: ${item.name} x${needed} (目标: ${targetAmount})`);
           boughtItems.push(`${item.name}x${needed}`);
           hasBought = true;
         } catch (error) {

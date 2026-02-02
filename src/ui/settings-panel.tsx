@@ -88,7 +88,13 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
   };
 
   const handleSave = async () => {
-    await Promise.all(Object.values(appConfig).map((setting) => setting.set(settings[setting.key] as never)));
+    await Promise.all(
+      Object.values(appConfig).map((setting) => {
+        const value = settings[setting.key];
+        const isEqual = JSON.stringify(value) === JSON.stringify(setting.defaultValue);
+        return isEqual ? GM.deleteValue(setting.key) : setting.set(value as never);
+      }),
+    );
 
     if (resourceMonitor) {
       const resources: Record<string, ResourceConfig> = {};
@@ -157,6 +163,13 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
         </Row>
         <Row>
           <Checkbox
+            checked={settings[appConfig.QUICK_ACTIONS_ENABLED.key]}
+            onChange={(v) => updateSetting(appConfig.QUICK_ACTIONS_ENABLED.key, v)}
+            label="快捷功能 - 快速执行一些Actions等"
+          />
+        </Row>
+        <Row>
+          <Checkbox
             checked={settings[appConfig.BATTLE_GUARD_ENABLED.key]}
             onChange={(v) => updateSetting(appConfig.BATTLE_GUARD_ENABLED.key, v)}
             label="战斗防护 - 自动禁用战斗功能"
@@ -177,6 +190,13 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
             checked={settings[appConfig.QUEST_MANAGER_ENABLED.key]}
             onChange={(v) => updateSetting(appConfig.QUEST_MANAGER_ENABLED.key, v)}
             label="启用任务管理器"
+          />
+        </Row>
+        <Row>
+          <Checkbox
+            checked={settings[appConfig.QUEST_AUTO_SUBMIT.key]}
+            onChange={(v) => updateSetting(appConfig.QUEST_AUTO_SUBMIT.key, v)}
+            label="进入游戏后自动提交任务"
           />
         </Row>
         <Row>
@@ -206,65 +226,66 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
             const someSelected = selectedTasks.length > 0 && !allSelected;
 
             return (
-            <div
-              key={category}
-              style={{ marginBottom: '8px', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}
-            >
               <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '6px 10px',
-                  background: '#f5f5f5',
-                  cursor: 'pointer',
-                  gap: '8px',
-                }}
-                onClick={() =>
-                  setExpandedCategories((prev) => ({
-                    ...prev,
-                    [category]: !prev[category],
-                  }))
-                }
+                key={category}
+                style={{ marginBottom: '8px', border: '1px solid #ddd', borderRadius: '4px', overflow: 'hidden' }}
               >
-                <Checkbox
-                  checked={allSelected}
-                  indeterminate={someSelected}
-                  onChange={(checked) => {
-                    updateSetting(appConfig.QUEST_SELECTED_TASKS.key, {
-                      ...settings[appConfig.QUEST_SELECTED_TASKS.key],
-                      [category]: tasks.reduce((acc, t) => ({ ...acc, [t]: checked }), {}),
-                    });
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '6px 10px',
+                    background: '#f5f5f5',
+                    cursor: 'pointer',
+                    gap: '8px',
                   }}
-                  onClick={(e) => e.stopPropagation()}
-                  style={{ margin: 0 }}
-                />
-                <span style={{ flex: 1 }}>{category}</span>
-                <span style={{ fontSize: '12px', color: '#666' }}>{expandedCategories[category] ? '▼' : '▶'}</span>
-              </div>
-
-              {expandedCategories[category] && (
-                <div style={{ padding: '6px 10px 6px 28px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  {tasks.map((task) => (
-                    <Checkbox
-                      key={task}
-                      checked={settings[appConfig.QUEST_SELECTED_TASKS.key]?.[category]?.[task] || false}
-                      onChange={(checked) => {
-                        updateSetting(appConfig.QUEST_SELECTED_TASKS.key, {
-                          ...settings[appConfig.QUEST_SELECTED_TASKS.key],
-                          [category]: {
-                            ...settings[appConfig.QUEST_SELECTED_TASKS.key]?.[category],
-                            [task]: checked,
-                          },
-                        });
-                      }}
-                      label={task}
-                      style={{ margin: 0 }}
-                    />
-                  ))}
+                  onClick={() =>
+                    setExpandedCategories((prev) => ({
+                      ...prev,
+                      [category]: !prev[category],
+                    }))
+                  }
+                >
+                  <Checkbox
+                    checked={allSelected}
+                    indeterminate={someSelected}
+                    onChange={(checked) => {
+                      updateSetting(appConfig.QUEST_SELECTED_TASKS.key, {
+                        ...settings[appConfig.QUEST_SELECTED_TASKS.key],
+                        [category]: tasks.reduce((acc, t) => ({ ...acc, [t]: checked }), {}),
+                      });
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                    style={{ margin: 0 }}
+                  />
+                  <span style={{ flex: 1 }}>{category}</span>
+                  <span style={{ fontSize: '12px', color: '#666' }}>{expandedCategories[category] ? '▼' : '▶'}</span>
                 </div>
-              )}
-            </div>
-          );})}
+
+                {expandedCategories[category] && (
+                  <div style={{ padding: '6px 10px 6px 28px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {tasks.map((task) => (
+                      <Checkbox
+                        key={task}
+                        checked={settings[appConfig.QUEST_SELECTED_TASKS.key]?.[category]?.[task] || false}
+                        onChange={(checked) => {
+                          updateSetting(appConfig.QUEST_SELECTED_TASKS.key, {
+                            ...settings[appConfig.QUEST_SELECTED_TASKS.key],
+                            [category]: {
+                              ...settings[appConfig.QUEST_SELECTED_TASKS.key]?.[category],
+                              [task]: checked,
+                            },
+                          });
+                        }}
+                        label={task}
+                        style={{ margin: 0 }}
+                      />
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </Card>
 
@@ -352,7 +373,7 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
           <Checkbox
             checked={settings[appConfig.AUTO_BUY_BASE_RESOURCES.key]}
             onChange={(v) => updateSetting(appConfig.AUTO_BUY_BASE_RESOURCES.key, v)}
-            label="自动购买基础资源"
+            label="自动购买基础资源（购买到设置量的110%，向下取整）"
           />
         </Row>
 
@@ -405,19 +426,29 @@ function SettingsPanelContent({ onClose, resourceMonitor, satietyManager }: Sett
       </Card>
 
       <Card title="🔧 调试配置">
-        <Row label="日志级别">
-          <Select
-            value={settings[appConfig.LOG_LEVEL.key]}
-            onChange={(v) => updateSetting(appConfig.LOG_LEVEL.key, v)}
-            options={[
-              { value: 'none', label: '不显示日志' },
-              { value: 'error', label: '错误' },
-              { value: 'warn', label: '警告' },
-              { value: 'success', label: '成功' },
-              { value: 'info', label: '信息' },
+        <Row label="日志类型">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+            {[
               { value: 'debug', label: '调试' },
-            ]}
-          />
+              { value: 'info', label: '信息' },
+              { value: 'success', label: '成功' },
+              { value: 'warn', label: '警告' },
+              { value: 'error', label: '错误' },
+            ].map((option) => (
+              <Checkbox
+                key={option.value}
+                checked={settings[appConfig.LOG_ENABLED_TYPES.key]?.[option.value] || false}
+                onChange={(checked) => {
+                  updateSetting(appConfig.LOG_ENABLED_TYPES.key, {
+                    ...settings[appConfig.LOG_ENABLED_TYPES.key],
+                    [option.value]: checked,
+                  });
+                }}
+                label={option.label}
+                style={{ margin: 0 }}
+              />
+            ))}
+          </div>
         </Row>
       </Card>
 

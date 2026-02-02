@@ -21,6 +21,7 @@ import {
   craftManager,
   battleGuard,
   tavernExpertManager,
+  quickActions,
 } from './features';
 import { mountResourceUtils } from './utils';
 import { appConfig } from './config/gm-settings';
@@ -57,8 +58,7 @@ const app: AppModules = {
  * 初始化日志系统
  */
 async function initLogger(): Promise<void> {
-  const logLevel = await appConfig.LOG_LEVEL.get();
-  logger.setMinLevel(logLevel);
+  await logger.reload();
 }
 
 /**
@@ -89,6 +89,7 @@ const getMenuButtons = async (): Promise<PanelButton[]> => {
   const skillAllocationEnabled = await appConfig.SKILL_ALLOCATION_ENABLED.get();
   const tavernExpertEnabled = await appConfig.TAVERN_EXPERT_ENABLED.get();
   const quickAlchemyEnabled = await appConfig.QUICK_ALCHEMY_ENABLED.get();
+  const quickActionsEnabled = await appConfig.QUICK_ACTIONS_ENABLED.get();
 
   // 技能加点
   if (skillAllocationEnabled) {
@@ -123,6 +124,15 @@ const getMenuButtons = async (): Promise<PanelButton[]> => {
       text: '⚗️ 快速炼金',
       onClick: () => app.alchemyPanel.show(),
       order: 5,
+    });
+  }
+
+  // 快捷功能
+  if (quickActionsEnabled) {
+    buttons.push({
+      text: '⚡ 快捷功能',
+      onClick: () => quickActions.openModal(),
+      order: 7,
     });
   }
 
@@ -161,24 +171,20 @@ async function initUI(): Promise<void> {
  * 检查是否启用了任何功能，如果没有则提示用户
  */
 async function checkAndNotifyNoFeatures(): Promise<void> {
-  const craftPanelEnabled = await appConfig.CRAFT_PANEL_ENABLED.get();
-  const skillAllocationEnabled = await appConfig.SKILL_ALLOCATION_ENABLED.get();
-  const tavernExpertEnabled = await appConfig.TAVERN_EXPERT_ENABLED.get();
-  const battleGuardEnabled = await appConfig.BATTLE_GUARD_ENABLED.get();
-  const questManagerEnabled = await appConfig.QUEST_MANAGER_ENABLED.get();
-  const monitorEnabled = await appConfig.RESOURCE_MONITOR_ENABLED.get();
-  const autoBerryEnabled = await appConfig.AUTO_USE_BERRY_ENABLED.get();
+  const featureFlags = await Promise.all([
+    appConfig.CRAFT_PANEL_ENABLED.get(),
+    appConfig.SKILL_ALLOCATION_ENABLED.get(),
+    appConfig.TAVERN_EXPERT_ENABLED.get(),
+    appConfig.BATTLE_GUARD_ENABLED.get(),
+    appConfig.QUEST_MANAGER_ENABLED.get(),
+    appConfig.RESOURCE_MONITOR_ENABLED.get(),
+    appConfig.AUTO_USE_BERRY_ENABLED.get(),
+    appConfig.QUICK_ACTIONS_ENABLED.get(),
+    appConfig.QUICK_ALCHEMY_ENABLED.get(),
+    appConfig.QUALITY_TOOLBAR_ENABLED.get(),
+  ]);
 
-  const hasAnyFeatureEnabled =
-    craftPanelEnabled ||
-    skillAllocationEnabled ||
-    tavernExpertEnabled ||
-    battleGuardEnabled ||
-    questManagerEnabled ||
-    monitorEnabled ||
-    autoBerryEnabled;
-
-  if (!hasAnyFeatureEnabled) {
+  if (!featureFlags.some(Boolean)) {
     toast.info('💡 当前未启用任何功能，请点击右下角浮动按钮进行配置', 3000);
   }
 }
@@ -269,5 +275,5 @@ void waitForElement('.user-dropdown').then(() => {
     await initUI();
     analytics.track('脚本', 'script_start', `v${GM.info.script.version}`);
     logger.success('UI 初始化完成');
-  }, 2000);
+  }, 1000);
 });

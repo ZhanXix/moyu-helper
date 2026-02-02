@@ -90,6 +90,8 @@ export const DEFAULT_RESOURCES: ResourceCategory[] = [
       nutrientEssence: { threshold: 10000, type: 'insufficient' },
       moonPearl: { threshold: 50, type: 'excess' },
       cutePoint: { threshold: 200, type: 'excess' },
+      bookOfWorkSkillTreePoint: { threshold: 1, type: 'excess' },
+      bookOfBattleSkillTreePoint: { threshold: 1, type: 'excess' },
     },
   },
 ];

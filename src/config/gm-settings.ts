@@ -39,7 +39,13 @@ export const appConfig = {
   MONITORED_RESOURCES: createGMConfigSetting('monitored_resources', '{}'),
 
   // 日志级别配置
-  LOG_LEVEL: createGMConfigSetting<'debug' | 'info' | 'warn' | 'error' | 'success' | 'none'>('log_level', 'none'),
+  LOG_ENABLED_TYPES: createGMConfigSetting<Record<string, boolean>>('log_enabled_types', {
+    debug: false,
+    info: false,
+    success: false,
+    warn: false,
+    error: false,
+  }),
 
   // 自动使用浆果配置
   AUTO_USE_BERRY_ENABLED: createGMConfigSetting('auto_use_berry_enabled', false),
@@ -67,8 +73,9 @@ export const appConfig = {
       收集云絮: true,
     },
   }),
-  QUEST_FIRST_RUN: createGMConfigSetting('quest_first_run', true),
-  QUEST_AUTO_EXECUTE: createGMConfigSetting('quest_auto_execute', true),
+  QUEST_FIRST_RUN: createGMConfigSetting('quest_first_run', false),
+  QUEST_AUTO_EXECUTE: createGMConfigSetting('quest_auto_execute', false),
+  QUEST_AUTO_SUBMIT: createGMConfigSetting('quest_auto_submit', false),
 
   // 功能开关
   BATTLE_GUARD_ENABLED: createGMConfigSetting('battle_guard_enabled', false),
@@ -77,6 +84,7 @@ export const appConfig = {
   CRAFT_PANEL_ENABLED: createGMConfigSetting('craft_panel_enabled', false),
   SKILL_ALLOCATION_ENABLED: createGMConfigSetting('skill_allocation_enabled', false),
   QUICK_ALCHEMY_ENABLED: createGMConfigSetting('quick_alchemy_enabled', false),
+  QUICK_ACTIONS_ENABLED: createGMConfigSetting('quick_actions_enabled', false),
 
   // 技能分配配置
   SKILL_ALLOCATION_SPECIALTY: createGMConfigSetting('skill_allocation_specialty', 'knowledge'),

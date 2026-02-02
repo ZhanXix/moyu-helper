@@ -4,12 +4,12 @@
  */
 
 import { render } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useMemo } from 'preact/hooks';
 import DEFAULT_CRAFT_ITEMS from '@/config/craft-items.json';
 import { logger, toast, ws, dataCache } from '@/core';
 import type { CraftItem, CraftItemCategory } from '@/types';
 import { Modal, Card, FormGroup, Select, Input, Checkbox, Button, Row } from '@/ui/components';
-import { analytics } from '@/utils';
+import { analytics, debounce, throttle } from '@/utils';
 import { appConfig } from '@/config/gm-settings';
 
 interface CraftStep {
@@ -23,16 +23,6 @@ interface CraftStep {
 class CraftManager {
   private categories = DEFAULT_CRAFT_ITEMS;
   private running = false;
-  private progressToast: any = null;
-
-  private ensureProgressToast(message: string): any {
-    if (!this.progressToast) {
-      this.progressToast = toast.progress(message);
-    } else {
-      this.progressToast.update(message);
-    }
-    return this.progressToast;
-  }
 
   getCraftCategories(): CraftItemCategory[] {
     return this.categories;
@@ -134,21 +124,31 @@ class CraftManager {
         const item = this.findByActionId(step.actionId);
         if (!item) continue;
 
+        let count = step.count;
+
+        // 目标物品始终制造，不检查库存和产出
+        if (step.actionId === targetActionId) {
+          optimized.unshift({ ...step, count });
+          if (item.dependencies) {
+            for (const dep of item.dependencies) {
+              resourceNeeds.set(dep.itemId, (resourceNeeds.get(dep.itemId) || 0) + dep.count * count);
+            }
+          }
+          continue;
+        }
+
+        // 依赖项需要检查产出和库存
         const mainReward = item.rewards[0];
         if (!mainReward) continue;
 
-        let count = step.count;
+        const stock = await dataCache.getItemCountAsync(mainReward.itemId);
+        const need = resourceNeeds.get(mainReward.itemId) || 0;
+        const netNeed = Math.max(0, need - stock);
+        count = Math.ceil(netNeed / mainReward.count);
 
-        if (step.actionId !== targetActionId) {
-          const stock = await dataCache.getItemCountAsync(mainReward.itemId);
-          const need = resourceNeeds.get(mainReward.itemId) || 0;
-          const netNeed = Math.max(0, need - stock);
-          count = Math.ceil(netNeed / mainReward.count);
-
-          if (count <= 0) {
-            logger.info(`跳过 ${step.name}（库存充足）`);
-            continue;
-          }
+        if (count <= 0) {
+          logger.info(`跳过 ${step.name}（库存充足）`);
+          continue;
         }
 
         optimized.unshift({ ...step, count });
@@ -170,16 +170,10 @@ class CraftManager {
     let actionQueue = await dataCache.getAsync('actionQueue');
     if (actionQueue.length > 0) {
       const totalCount = actionQueue.length;
-      this.ensureProgressToast(`正在清空任务 (0/${totalCount})`);
+      toast.progress(`正在清空任务 (0/${totalCount})`);
       for (let i = actionQueue.length - 1; i >= 0; i--) {
-        const expectedLength = actionQueue.length - 1;
-        this.progressToast.update(`正在清空任务 (${totalCount - i}/${totalCount})`);
-        await ws.sendAndWaitEvent(
-          'removeTaskFromQueue',
-          i,
-          'actionQueueUpdated',
-          (queue: any[]) => queue.length === expectedLength,
-        );
+        toast.progress(`正在清空任务 (${totalCount - i}/${totalCount})`);
+        await ws.sendAndWaitEvent('removeTaskFromQueue', i, 'actionQueueUpdated');
         actionQueue = await dataCache.getAsync('actionQueue');
       }
     }
@@ -191,9 +185,9 @@ class CraftManager {
 
     if (existingTasks.length > 0) {
       const totalCount = existingTasks.length;
-      this.ensureProgressToast(`正在清空 ${kittyName} 的任务 (0/${totalCount})`);
+      toast.progress(`正在清空 ${kittyName} 的任务 (0/${totalCount})`);
       for (let i = existingTasks.length - 1; i >= 0; i--) {
-        this.progressToast.update(`正在清空 ${kittyName} 的任务 (${totalCount - i}/${totalCount})`);
+        toast.progress(`正在清空 ${kittyName} 的任务 (${totalCount - i}/${totalCount})`);
         await ws.sendAndListen('kitty:removeTask', { kittyUuid, index: i });
       }
     }
@@ -211,14 +205,14 @@ class CraftManager {
       toast.info('正在计算制造计划...');
       const plan = this.buildPlan(actionId, count);
       if (plan.length === 0) {
-        this.progressToast?.hide();
+        toast.hideProgress();
         return;
       }
 
       const optimized = await this.optimizePlan(plan, actionId);
       if (optimized.length === 0) {
         toast.info('无需制造');
-        this.progressToast?.hide();
+        toast.hideProgress();
         return;
       }
 
@@ -226,11 +220,11 @@ class CraftManager {
         await this.clearPlayerTasks();
       }
 
-      this.ensureProgressToast('正在添加制造任务...');
+      toast.progress('正在添加制造任务...');
 
       for (let i = 0; i < optimized.length; i++) {
         const step = optimized[i];
-        this.progressToast.update(`正在添加 ${step.name} ×${step.count} (${i + 1}/${optimized.length})`);
+        toast.progress(`正在添加 ${step.name} ×${step.count} (${i + 1}/${optimized.length})`);
 
         await ws.sendAndWaitEvent(
           'addTaskToQueue',
@@ -241,11 +235,10 @@ class CraftManager {
             createTime: Date.now(),
           },
           'actionQueueUpdated',
-          () => true,
         );
       }
 
-      this.progressToast.update('正在添加默认任务...');
+      toast.progress('正在添加默认任务...');
       const defaultTasks = await appConfig.PLAYER_DEFAULT_TASKS.get();
       for (const taskId of defaultTasks) {
         if (taskId) {
@@ -258,18 +251,17 @@ class CraftManager {
               createTime: Date.now(),
             },
             'actionQueueUpdated',
-            () => true,
           );
         }
       }
 
-      this.progressToast.hide();
+      toast.hideProgress();
       toast.success(`已提交 ${optimized.length} 个制造任务`);
       analytics.track('制造', 'player_craft', `${optimized.length}个任务`);
     } catch (error) {
       logger.error('制造失败', error);
       toast.error('制造失败');
-      this.progressToast?.hide();
+      toast.hideProgress();
     } finally {
       this.running = false;
     }
@@ -293,19 +285,19 @@ class CraftManager {
     try {
       const plan = this.buildPlan(actionId, count);
       if (plan.length === 0) {
-        this.progressToast?.hide();
+        toast.hideProgress();
         return;
       }
 
       const optimized = await this.optimizePlan(plan, actionId);
       if (optimized.length === 0) {
         toast.info(`🐱 ${kittyName} 无需制造`);
-        this.progressToast?.hide();
+        toast.hideProgress();
         return;
       }
 
       const tasks = optimized.slice(0, 2);
-      this.ensureProgressToast(`正在为 ${kittyName} 安排制造任务...`);
+      toast.progress(`正在为 ${kittyName} 安排制造任务...`);
 
       if (clearTasks) {
         await this.clearKittyTasks(kittyUuid, kittyName);
@@ -313,7 +305,7 @@ class CraftManager {
 
       for (let i = 0; i < tasks.length; i++) {
         const step = tasks[i];
-        this.progressToast?.update(`正在为 ${kittyName} 添加 ${step.name} ×${step.count} (${i + 1}/${tasks.length})`);
+        toast.progress(`正在为 ${kittyName} 添加 ${step.name} ×${step.count} (${i + 1}/${tasks.length})`);
 
         await ws.sendAndListen('kitty:addTask', {
           kittyUuid,
@@ -341,14 +333,14 @@ class CraftManager {
         addedDefaultTask = true;
       }
 
-      this.progressToast?.hide();
+      toast.hideProgress();
       const taskCount = addedDefaultTask ? tasks.length + 1 : tasks.length;
       toast.success(`🐱 ${kittyName} 已提交 ${taskCount} 个任务`);
       analytics.track('制造', 'kitty_craft', `${kittyName}-${taskCount}个任务`);
     } catch (error) {
       logger.error(`🐱 ${kittyName} 制造失败`, error);
       toast.error('制造失败');
-      this.progressToast?.hide();
+      toast.hideProgress();
     } finally {
       this.running = false;
     }
@@ -415,55 +407,79 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
     void loadData();
   }, []);
 
+  const debouncedUpdatePreview = useMemo(
+    () =>
+      debounce(async (item: string, num: number) => {
+        if (!item) {
+          setPreview('请选择物品');
+          return;
+        }
+
+        const plan = craftManager.buildPlan(item, num);
+        if (plan.length === 0) {
+          setPreview('⚠️ 无法计算制造计划');
+          return;
+        }
+
+        const optimized = await craftManager.optimizePlan(plan, item);
+        if (optimized.length === 0) {
+          setPreview('✅ 库存充足，无需制造');
+          return;
+        }
+
+        const stepsHTML = optimized
+          .map((step: any, index: number) => `${index + 1}. ${step.name} ×${step.count}`)
+          .join('\n');
+        setPreview(stepsHTML);
+      }, 300),
+    [],
+  );
+
   useEffect(() => {
-    const updatePreview = async () => {
-      if (!selectedItem) {
-        setPreview('请选择物品');
-        return;
-      }
+    debouncedUpdatePreview(selectedItem, count);
+  }, [selectedItem, count, debouncedUpdatePreview]);
 
-      const plan = craftManager.buildPlan(selectedItem, count);
-      if (plan.length === 0) {
-        setPreview('⚠️ 无法计算制造计划');
-        return;
-      }
+  const handleCountChange = useMemo(
+    () =>
+      debounce((v: string) => {
+        setCount(parseInt(v) || 1);
+      }, 300),
+    [],
+  );
 
-      const optimized = await craftManager.optimizePlan(plan, selectedItem);
-      if (optimized.length === 0) {
-        setPreview('✅ 库存充足，无需制造');
-        return;
-      }
+  const handleQuickAdd = useMemo(
+    () =>
+      throttle((value: number) => {
+        setCount((prev) => prev + value);
+      }, 300),
+    [],
+  );
 
-      const stepsHTML = optimized
-        .map((step: any, index: number) => `${index + 1}. ${step.name} ×${step.count}`)
-        .join('\n');
-      setPreview(stepsHTML);
-    };
+  const handleCraft = useMemo(
+    () =>
+      throttle(async () => {
+        if (!selectedItem) {
+          toast.warning('请先选择要制造的物品');
+          return;
+        }
+        onClose();
+        await craftManager.craftWithDependencies(selectedItem, count, clearTasks);
+      }, 1000),
+    [selectedItem, count, clearTasks, onClose],
+  );
 
-    void updatePreview();
-  }, [selectedItem, count]);
-
-  const handleQuickAdd = (value: number) => {
-    setCount((prev) => prev + value);
-  };
-
-  const handleCraft = async () => {
-    if (!selectedItem) {
-      toast.warning('请先选择要制造的物品');
-      return;
-    }
-    onClose();
-    await craftManager.craftWithDependencies(selectedItem, count, clearTasks);
-  };
-
-  const handleKittyCraft = async (kittyUuid: string, kittyName: string, kittyIndex: number) => {
-    if (!selectedItem) {
-      toast.warning('请先选择要制造的物品');
-      return;
-    }
-    onClose();
-    await craftManager.craftWithKitty(kittyUuid, kittyName, kittyIndex, selectedItem, count, clearTasks);
-  };
+  const handleKittyCraft = useMemo(
+    () =>
+      throttle(async (kittyUuid: string, kittyName: string, kittyIndex: number) => {
+        if (!selectedItem) {
+          toast.warning('请先选择要制造的物品');
+          return;
+        }
+        onClose();
+        await craftManager.craftWithKitty(kittyUuid, kittyName, kittyIndex, selectedItem, count, clearTasks);
+      }, 1000),
+    [selectedItem, count, clearTasks, onClose],
+  );
 
   const handlePlayerDefaultTaskChange = async (index: number, value: string) => {
     const newTasks = [...playerDefaultTasks];
@@ -492,38 +508,46 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
     })),
   }));
 
-  const handleClearPlayerTasks = async () => {
-    try {
-      const actionQueue = await dataCache.getAsync('actionQueue');
-      if (actionQueue.length === 0) {
-        toast.info('任务队列已为空');
-        return;
-      }
-      await craftManager.clearPlayerTasks();
-      toast.success('✅ 已清空当前角色任务');
-    } catch (error) {
-      logger.error('清空当前角色任务失败', error);
-      toast.error('清空任务失败');
-    }
-  };
+  const handleClearPlayerTasks = useMemo(
+    () =>
+      throttle(async () => {
+        try {
+          const actionQueue = await dataCache.getAsync('actionQueue');
+          if (actionQueue.length === 0) {
+            toast.info('任务队列已为空');
+            return;
+          }
+          await craftManager.clearPlayerTasks();
+          toast.success('✅ 已清空当前角色任务');
+        } catch (error) {
+          logger.error('清空当前角色任务失败', error);
+          toast.error('清空任务失败');
+        }
+      }, 1000),
+    [],
+  );
 
-  const handleClearKittyTasks = async (kittyUuid: string, kittyName: string) => {
-    try {
-      const data = await ws.sendAndListen('kitty:getAllTask', { kittyUuid });
-      const existingTasks = data.payload.data.taskQueue;
+  const handleClearKittyTasks = useMemo(
+    () =>
+      throttle(async (kittyUuid: string, kittyName: string) => {
+        try {
+          const data = await ws.sendAndListen('kitty:getAllTask', { kittyUuid });
+          const existingTasks = data.payload.data.taskQueue;
 
-      if (existingTasks.length === 0) {
-        toast.info(`${kittyName} 任务队列已为空`);
-        return;
-      }
+          if (existingTasks.length === 0) {
+            toast.info(`${kittyName} 任务队列已为空`);
+            return;
+          }
 
-      await craftManager.clearKittyTasks(kittyUuid, kittyName);
-      toast.success(`✅ 已清空 ${kittyName} 的任务`);
-    } catch (error) {
-      logger.error(`清空 ${kittyName} 任务失败`, error);
-      toast.error('清空任务失败');
-    }
-  };
+          await craftManager.clearKittyTasks(kittyUuid, kittyName);
+          toast.success(`✅ 已清空 ${kittyName} 的任务`);
+        } catch (error) {
+          logger.error(`清空 ${kittyName} 任务失败`, error);
+          toast.error('清空任务失败');
+        }
+      }, 1000),
+    [],
+  );
 
   return (
     <>
@@ -532,7 +556,7 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
       </FormGroup>
 
       <FormGroup label="制造数量">
-        <Input type="number" value={count} onChange={(v) => setCount(parseInt(v) || 1)} min={1} step={1} />
+        <Input type="number" value={count} onChange={handleCountChange} min={1} step={1} />
         <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
           {[10, 100, 1000, 10000].map((value) => (
             <Button
