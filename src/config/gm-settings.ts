@@ -109,7 +109,7 @@ export const appConfig = {
   // 默认任务配置
   PLAYER_DEFAULT_TASKS: createGMConfigSetting<string[]>('player_default_tasks', ['treasureHunt', 'reading']), //寻宝、读书
   KITTY_DEFAULT_TASKS: createGMConfigSetting<Record<number, string>>('kitty_default_tasks', {
-    0: 'sericulture',  // 养蚕
+    0: 'sericulture', // 养蚕
     1: 'pearlCultivation', // 培育珍珠
   }),
 } as const;
