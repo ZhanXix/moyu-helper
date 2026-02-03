@@ -72,6 +72,21 @@ export const appConfig = {
       挖沙: true,
       收集云絮: true,
     },
+    烹饪: {
+      制作野草沙拉: true,
+      制作野果拼盘: true,
+      熬制鱼汤: true,
+      炖蘑菇汤: true,
+      制作猫薄荷饼干: true,
+      制作猫咪零食: true,
+      烤制浆果派: true,
+      制作豪华猫粮: true,
+      制作黑麦面包: true,
+      制作新手用鱼: true,
+      制作普通鱼饵: true,
+      制作浆果奶昔: true,
+      制作铃语奶昔: true,
+    },
   }),
   QUEST_FIRST_RUN: createGMConfigSetting('quest_first_run', false),
   QUEST_AUTO_EXECUTE: createGMConfigSetting('quest_auto_execute', false),
@@ -92,9 +107,9 @@ export const appConfig = {
   SKILL_ALLOCATION_LUCKY_FIRST: createGMConfigSetting('skill_allocation_lucky_first', true),
 
   // 默认任务配置
-  PLAYER_DEFAULT_TASKS: createGMConfigSetting<string[]>('player_default_tasks', ['reading', 'cutBamboo']),
+  PLAYER_DEFAULT_TASKS: createGMConfigSetting<string[]>('player_default_tasks', ['treasureHunt', 'reading']), //寻宝、读书
   KITTY_DEFAULT_TASKS: createGMConfigSetting<Record<number, string>>('kitty_default_tasks', {
-    0: 'exploreNewArea',
-    1: 'pearlCultivation',
+    0: 'sericulture',  // 养蚕
+    1: 'pearlCultivation', // 培育珍珠
   }),
 } as const;

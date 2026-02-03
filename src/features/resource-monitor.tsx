@@ -213,7 +213,7 @@ class ResourceMonitor {
       if (remainingItems.length > 0) {
         this.showAlert(remainingItems, persistent);
       } else {
-        toast.success('✅ 所有资源充足，无需补充', 3000);
+        toast.success('✅ 所有资源充足，无需补充', 1000);
       }
     }
   }
