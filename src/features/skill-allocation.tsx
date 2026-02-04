@@ -526,8 +526,13 @@ function calculateTalentAllocation(
       }
 
       // 优先升级等级较低的节点，保持1:1平衡
-      const nodeToUpgrade =
-        !canUpgradeReward ? returnResourceNodeId : !canUpgradeReturn ? extraRewardNodeId : allocation[extraRewardNodeId] <= allocation[returnResourceNodeId] ? extraRewardNodeId : returnResourceNodeId;
+      const nodeToUpgrade = !canUpgradeReward
+        ? returnResourceNodeId
+        : !canUpgradeReturn
+          ? extraRewardNodeId
+          : allocation[extraRewardNodeId] <= allocation[returnResourceNodeId]
+            ? extraRewardNodeId
+            : returnResourceNodeId;
 
       const cost = getUpgradeCost(nodeToUpgrade, allocation[nodeToUpgrade]);
       if (cost <= remainingPoints) {
@@ -683,11 +688,11 @@ class SkillAllocationManager {
     const timeoutMs = 10000;
 
     // 先准备监听器 promise
-    const listenPromise = ws.awaitOnce('skillTree:reset:success');
+    const listenPromise = ws.waitFor('skillTree:reset:success');
 
     // 发送重置请求（不等待响应）
     try {
-      await ws.send('skillTree:reset', { treeId });
+      await ws.emit('skillTree:reset', { treeId });
     } catch (err) {
       logger.warn('发送重置消息失败（可能尚未连接），继续等待事件', err);
     }
@@ -729,7 +734,7 @@ class SkillAllocationManager {
 
   async allocate(nodeId: string, treeId: string = 'life'): Promise<SkillAllocationSummary> {
     const timeoutMs = 8000;
-    const responsePromise = ws.sendAndListenCustom('skillTree:allocate', 'skillTree:summary:success', {
+    const responsePromise = ws.requestRaw('skillTree:allocate', 'skillTree:summary:success', {
       treeId,
       nodeId,
     });
@@ -782,7 +787,7 @@ class SkillAllocationManager {
       // 先获取技能树摘要,等待响应后再进行后续操作
       logger.info('获取技能树摘要...');
       const timeoutMs = 10000;
-      const summaryPromise = ws.sendAndListenCustom('skillTree:summary', 'skillTree:summary:success', { treeId });
+      const summaryPromise = ws.requestRaw('skillTree:summary', 'skillTree:summary:success', { treeId });
       let summaryResponse: any;
       try {
         summaryResponse = await Promise.race([
@@ -792,6 +797,7 @@ class SkillAllocationManager {
         logger.debug('技能树摘要响应:', summaryResponse);
       } catch (err: any) {
         logger.error('获取技能树摘要超时或失败', err);
+        toast.hideProgress('skill-allocation');
         throw new Error('获取技能树摘要失败');
       }
 
@@ -965,7 +971,7 @@ function SkillAllocationPanelContent({ onClose }: { onClose: () => void }) {
 
     // 异步执行加点操作,通过持续显示的 toast 显示进度
     try {
-      toast.progress('📊 正在获取专精点数信息...');
+      toast.progress('正在获取专精点数信息...', 'skill-allocation');
 
       await sleep(500);
 
@@ -976,10 +982,13 @@ function SkillAllocationPanelContent({ onClose }: { onClose: () => void }) {
         'life',
         (remaining, total, nodeId) => {
           const nodeName = getNodeDisplayName(nodeId);
-          toast.progress(`⬆️ 生活专精加点中！当前: ${nodeName}（剩余技能点: ${remaining}/${total}）`);
+          toast.progress(
+            `⬆️ 生活专精加点中！当前: ${nodeName}（剩余技能点: ${remaining}/${total}）`,
+            'skill-allocation',
+          );
         },
         () => {
-          toast.progress('🧮 正在计算加点方案...');
+          toast.progress('🧮 正在计算加点方案...', 'skill-allocation');
         },
       );
 
@@ -987,19 +996,19 @@ function SkillAllocationPanelContent({ onClose }: { onClose: () => void }) {
         const allocationDetails = Object.entries(result.allocation)
           .map(([nodeId, level]) => `${getNodeDisplayName(nodeId)}: ${level}`)
           .join('<br>');
-        toast.hideProgress();
+        toast.hideProgress('skill-allocation');
         toast.success(
           `✅ 加点完成！<br><br>已使用技能点：${result.summary.usedPoints}/${result.summary.totalPoints}<br><br>💡加点详情:<br>${allocationDetails}`,
           10000,
         );
       } else {
-        toast.hideProgress();
+        toast.hideProgress('skill-allocation');
         toast.error('❌ 加点失败');
       }
     } catch (error) {
       logger.error('加点失败', error);
       const msg = error instanceof Error ? error.message : '未知错误';
-      toast.hideProgress();
+      toast.hideProgress('skill-allocation');
       toast.error(`❌ 加点失败: ${msg}`);
     }
   };
