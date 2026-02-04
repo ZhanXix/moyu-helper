@@ -96,6 +96,7 @@ export const DEFAULT_RESOURCES: ResourceCategory[] = [
       cutePoint: { threshold: 200, type: 'excess' },
       bookOfWorkSkillTreePoint: { threshold: 1, type: 'excess' },
       bookOfBattleSkillTreePoint: { threshold: 1, type: 'excess' },
+      hb_null_signature: { threshold: 10, type: 'excess' }, // 归零印记
     },
   },
 ];
