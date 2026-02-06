@@ -168,7 +168,6 @@ class ResourceMonitor {
   async checkResources(persistent: boolean = true): Promise<void> {
     if (!this.enabled) {
       logger.debug('资源监控未启用');
-      toast.info('资源监控未启用，请在设置面板中启用后再进行检查', 3000);
       return;
     }
 
