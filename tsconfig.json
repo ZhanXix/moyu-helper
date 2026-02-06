@@ -1,14 +1,10 @@
 {
   "compilerOptions": {
-    // "ignoreDeprecations": "6.0",
+    "ignoreDeprecations": "5.0",
     "target": "ES2020",
     "useDefineForClassFields": true,
     "module": "ESNext",
-    "lib": [
-      "ES2021",
-      "DOM",
-      "DOM.Iterable"
-    ],
+    "lib": ["ES2021", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -24,12 +20,8 @@
     "jsxImportSource": "preact",
     "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "src/*"
-      ]
+      "@/*": ["src/*"]
     }
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src"]
 }
