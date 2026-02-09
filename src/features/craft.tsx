@@ -3,13 +3,13 @@
  * 包含制造管理器和制造面板
  */
 
-import { render } from 'preact';
 import { useState, useEffect, useMemo } from 'preact/hooks';
 import DEFAULT_CRAFT_ITEMS from '@/config/craft-items.json';
 import { toast, ws, dataCache, eventBus, BaseFeature, createLogger } from '@/core';
 const logger = createLogger('Craft');
 import type { CraftItem, CraftItemCategory } from '@/types';
-import { Modal, Card, FormGroup, Select, Input, Checkbox, Button, Row } from '@/ui/components';
+import { Card, FormGroup, Select, Input, Checkbox, Button, Row } from '@/ui/components';
+import { BasePanel } from '@/ui/base-panel';
 import { debounce, throttle, getWsErrorMessage } from '@/utils';
 import { appConfig } from '@/config/gm-settings';
 
@@ -328,7 +328,7 @@ class CraftManager extends BaseFeature {
       return;
     }
 
-    this._running = true;
+    this._running.value = true;
     try {
       toast.info('正在计算制造计划...');
       const plan = this.buildPlan(actionId, count);
@@ -373,7 +373,7 @@ class CraftManager extends BaseFeature {
       toast.error(getWsErrorMessage(error, '制造失败'));
       toast.hideProgress('craft');
     } finally {
-      this._running = false;
+      this._running.value = false;
     }
   }
 
@@ -390,7 +390,7 @@ class CraftManager extends BaseFeature {
       return;
     }
 
-    this._running = true;
+    this._running.value = true;
     try {
       const plan = this.buildPlan(actionId, count);
       if (plan.length === 0) {
@@ -437,7 +437,7 @@ class CraftManager extends BaseFeature {
       toast.error(`🐱 ${kittyName}: ${getWsErrorMessage(error, '制造失败')}`);
       toast.hideProgress('craft');
     } finally {
-      this._running = false;
+      this._running.value = false;
     }
   }
 
@@ -474,7 +474,6 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
   const [kitties, setKitties] = useState<any[]>([]);
   const [playerDefaultTasks, setPlayerDefaultTasks] = useState<string[]>(appConfig.PLAYER_DEFAULT_TASKS.defaultValue);
   const [kittyDefaultTasks, setKittyDefaultTasks] = useState<Record<number, string>>({});
-  const [isProcessing, setIsProcessing] = useState(craftManager.isRunning);
 
   const isKittyBanned = useMemo(() => craftManager.isBannedForKitty(selectedItem), [selectedItem]);
 
@@ -501,7 +500,6 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
 
       setPlayerDefaultTasks(savedPlayerTasks);
       setKittyDefaultTasks(savedKittyTasks);
-      setIsProcessing(craftManager.isRunning);
     };
 
     void loadData();
@@ -559,21 +557,13 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
     debouncedUpdatePreview(selectedItem, count);
   }, [selectedItem, count, debouncedUpdatePreview]);
 
-  const handleCountChange = useMemo(
-    () =>
-      debounce((v: string) => {
-        setCount(parseInt(v) || 1);
-      }, 300),
-    [],
-  );
+  const handleCountChange = (v: string) => {
+    setCount(parseInt(v) || 1);
+  };
 
-  const handleQuickAdd = useMemo(
-    () =>
-      throttle((value: number) => {
-        setCount((prev) => prev + value);
-      }, 300),
-    [],
-  );
+  const handleQuickAdd = (value: number) => {
+    setCount((prev) => prev + value);
+  };
 
   const handleCraft = useMemo(
     () =>
@@ -717,8 +707,8 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
         </Card>
       )}
 
-      <Button onClick={handleCraft} disabled={isProcessing}>
-        {isProcessing ? '制造中...' : '开始制造'}
+      <Button onClick={handleCraft} disabled={craftManager.running.value}>
+        {craftManager.running.value ? '制造中...' : '开始制造'}
       </Button>
 
       {kitties.length > 0 && !isKittyBanned && (
@@ -729,7 +719,7 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
               variant="kitty"
               onClick={() => handleKittyCraft(kitty.uuid, kitty.name || `猫咪${index + 1}`, index)}
               style={{ flex: 1 }}
-              disabled={isProcessing}
+              disabled={craftManager.running.value}
             >
               🐱 {kitty.name || `猫咪${index + 1}`}
             </Button>
@@ -797,33 +787,7 @@ function CraftPanelContent({ onClose }: CraftPanelProps) {
   );
 }
 
-export class CraftPanel {
-  private container: HTMLDivElement | null = null;
-  private isOpen = false;
-
-  show(): void {
-    if (this.isOpen) return;
-    this.isOpen = true;
-
-    if (!this.container) {
-      this.container = document.createElement('div');
-      document.body.appendChild(this.container);
-    }
-
-    render(
-      <Modal isOpen={true} onClose={() => this.hide()} title="🔨 物品制造">
-        <CraftPanelContent onClose={() => this.hide()} />
-      </Modal>,
-      this.container,
-    );
-  }
-
-  hide(): void {
-    if (!this.isOpen) return;
-    this.isOpen = false;
-
-    if (this.container) {
-      render(null, this.container);
-    }
-  }
+export class CraftPanel extends BasePanel {
+  get title() { return '🔨 物品制造'; }
+  renderContent() { return <CraftPanelContent onClose={() => this.hide()} />; }
 }

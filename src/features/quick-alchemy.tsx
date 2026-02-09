@@ -1,10 +1,10 @@
-import { render } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
 import { toast, ws, dataCache, BaseFeature, createLogger } from '@/core';
 
 const logger = createLogger('Alchemy');
 import { getWsErrorMessage } from '@/utils';
-import { Modal, Card, FormGroup, Select, Button, Slider } from '@/ui/components';
+import { Card, FormGroup, Select, Button, Slider } from '@/ui/components';
+import { BasePanel } from '@/ui/base-panel';
 import { getResourceDetail, getTAllGameResource } from '@/utils';
 import ESSENCE_CLASSIFICATION from '@/config/monster-essence-classification.json';
 import { ALCHEMY_RECIPES, ESSENCE_LEVEL_MAP, type AlchemyItem } from '@/config/alchemy-recipes';
@@ -93,7 +93,7 @@ class AlchemyService extends BaseFeature {
       return false;
     }
 
-    this._running = true;
+    this._running.value = true;
     try {
       toast.info(`正在提交炼金任务 ${getResourceName(recipeId)} x${times}...`);
       await ws.request('alchemy:auto:create', { input: inputs, times }, 30000);
@@ -104,7 +104,7 @@ class AlchemyService extends BaseFeature {
       toast.error(getWsErrorMessage(error, '炼金任务提交失败'));
       return false;
     } finally {
-      this._running = false;
+      this._running.value = false;
     }
   }
 }
@@ -363,41 +363,18 @@ const AlchemyForm = ({ onClose }: { onClose: () => void }) => {
       )}
 
       <div style={{ display: 'flex', gap: '10px', marginTop: '12px' }}>
-        <Button variant="secondary" onClick={onClose} style={{ flex: 1 }} disabled={alchemyManager.isRunning}>
+        <Button variant="secondary" onClick={onClose} style={{ flex: 1 }} disabled={alchemyManager.running.value}>
           取消
         </Button>
-        <Button onClick={handleSubmit} style={{ flex: 1 }} disabled={alchemyManager.isRunning}>
-          {alchemyManager.isRunning ? '提交中...' : '提交'}
+        <Button onClick={handleSubmit} style={{ flex: 1 }} disabled={alchemyManager.running.value}>
+          {alchemyManager.running.value ? '提交中...' : '提交'}
         </Button>
       </div>
     </>
   );
 };
 
-export class AlchemyPanel {
-  private container: HTMLDivElement | null = null;
-  private isOpen = false;
-
-  show() {
-    if (this.isOpen) return;
-    this.isOpen = true;
-
-    if (!this.container) {
-      this.container = document.createElement('div');
-      document.body.appendChild(this.container);
-    }
-
-    render(
-      <Modal isOpen={true} onClose={() => this.hide()} title="⚗️ 快速炼金">
-        <AlchemyForm onClose={() => this.hide()} />
-      </Modal>,
-      this.container,
-    );
-  }
-
-  hide() {
-    if (!this.isOpen) return;
-    this.isOpen = false;
-    if (this.container) render(null, this.container);
-  }
+export class AlchemyPanel extends BasePanel {
+  get title() { return '⚗️ 快速炼金'; }
+  renderContent() { return <AlchemyForm onClose={() => this.hide()} />; }
 }

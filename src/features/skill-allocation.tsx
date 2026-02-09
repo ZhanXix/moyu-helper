@@ -13,7 +13,8 @@ import { ws, toast, BaseFeature, createLogger } from '@/core';
 
 const logger = createLogger('SkillAllocation');
 import { sleep } from '@/utils';
-import { Modal, FormGroup, Select, Checkbox, Button } from '@/ui/components';
+import { FormGroup, Select, Checkbox, Button } from '@/ui/components';
+import { BasePanel } from '@/ui/base-panel';
 
 // ==================== 类型定义 ====================
 
@@ -777,7 +778,7 @@ class SkillAllocationManager extends BaseFeature {
       return null;
     }
 
-    this._running = true;
+    this._running.value = true;
     logger.info(`开始自动加点: 策略=${strategy}, 专精=${specialty}, 幸运优先=${luckyFirst}`);
 
     try {
@@ -874,7 +875,7 @@ class SkillAllocationManager extends BaseFeature {
       logger.error('加点失败', error);
       throw error;
     } finally {
-      this._running = false;
+      this._running.value = false;
     }
   }
 
@@ -891,7 +892,6 @@ function SkillAllocationPanelContent({ onClose }: { onClose: () => void }) {
   const [specialty, setSpecialty] = useState('knowledge');
   const [strategy, setStrategy] = useState('产出优先');
   const [luckyFirst, setLuckyFirst] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(skillAllocationManager.isRunning);
 
   // 加载保存的设置
   useEffect(() => {
@@ -900,7 +900,6 @@ function SkillAllocationPanelContent({ onClose }: { onClose: () => void }) {
         setSpecialty(await appConfig.SKILL_ALLOCATION_SPECIALTY.get());
         setStrategy(await appConfig.SKILL_ALLOCATION_STRATEGY.get());
         setLuckyFirst(await appConfig.SKILL_ALLOCATION_LUCKY_FIRST.get());
-        setIsProcessing(skillAllocationManager.isRunning);
       } catch (error) {
         logger.warn('加载设置失败', error);
       }
@@ -1015,43 +1014,15 @@ function SkillAllocationPanelContent({ onClose }: { onClose: () => void }) {
         />
       </FormGroup>
 
-      <Button onClick={handleAllocate} disabled={isProcessing}>
-        {isProcessing ? '加点中...' : '开始加点'}
+      <Button onClick={handleAllocate} disabled={skillAllocationManager.running.value}>
+        {skillAllocationManager.running.value ? '加点中...' : '开始加点'}
       </Button>
 
     </>
   );
 }
 
-export class SkillAllocationPanel {
-  private container: HTMLDivElement | null = null;
-  private isOpen = false;
-
-  show(): void {
-    if (this.isOpen) return;
-    this.isOpen = true;
-
-    if (!this.container) {
-      this.container = document.createElement('div');
-      document.body.appendChild(this.container);
-    }
-
-    render(
-      <Modal isOpen={true} onClose={() => this.hide()} title="🌳 生活专精加点">
-        <SkillAllocationPanelContent onClose={() => this.hide()} />
-      </Modal>,
-      this.container,
-    );
-  }
-
-  hide(): void {
-    if (!this.isOpen) return;
-    this.isOpen = false;
-
-    if (this.container) {
-      render(null, this.container);
-      this.container.remove();
-      this.container = null;
-    }
-  }
+export class SkillAllocationPanel extends BasePanel {
+  get title() { return '🌳 生活专精加点'; }
+  renderContent() { return <SkillAllocationPanelContent onClose={() => this.hide()} />; }
 }

@@ -24,7 +24,7 @@ export default defineConfig({
         description: '摸鱼放置游戏自动化辅助脚本 - 任务管理、智能制造、资源监控、技能树优化',
         author: 'NanGuaChui & ZhanXix',
         match: ['https://www.moyu-idle.com/*', 'https://moyu-idle.com/*'],
-        'run-at': 'document-end',
+        'run-at': 'document-start',
         updateURL: 'https://github.com/ZhanXix/moyu-helper/releases/latest/download/moyu-helper-xz-personal.user.js',
         downloadURL: 'https://github.com/ZhanXix/moyu-helper/releases/latest/download/moyu-helper-xz-personal.user.js',
         grant: ['unsafeWindow', 'GM.getValue', 'GM.setValue', 'GM_addStyle'],
