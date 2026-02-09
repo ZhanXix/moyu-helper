@@ -154,11 +154,6 @@
             "itemId": "amberSap",
             "count": 0.08,
             "label": "琥珀汁"
-          },
-          {
-            "itemId": "luckyCatBox",
-            "count": 0.01,
-            "label": "幸运猫盒"
           }
         ]
       },
@@ -203,11 +198,6 @@
             "itemId": "honey",
             "count": 3,
             "label": "蜂蜜"
-          },
-          {
-            "itemId": "luckyCatBox",
-            "count": 0.01,
-            "label": "幸运猫盒"
           }
         ]
       },
@@ -220,11 +210,6 @@
             "itemId": "bamboo",
             "count": 3,
             "label": "竹子"
-          },
-          {
-            "itemId": "luckyCatBox",
-            "count": 0.01,
-            "label": "幸运猫盒"
           }
         ]
       },
@@ -465,11 +450,6 @@
         "actionId": "mining",
         "rewards": [
           {
-            "itemId": "gold",
-            "count": 0.05,
-            "label": "金币"
-          },
-          {
             "itemId": "stone",
             "count": 1,
             "label": "矿石"
@@ -491,11 +471,6 @@
         "label": "矿井采矿",
         "actionId": "miningWithShaft",
         "rewards": [
-          {
-            "itemId": "gold",
-            "count": 0.05,
-            "label": "金币"
-          },
           {
             "itemId": "stone",
             "count": 10,
@@ -519,11 +494,6 @@
         "actionId": "deepMining",
         "rewards": [
           {
-            "itemId": "gold",
-            "count": 1,
-            "label": "金币"
-          },
-          {
             "itemId": "iron",
             "count": 6,
             "label": "铁"
@@ -546,11 +516,6 @@
         "actionId": "miningFishscaleMineral",
         "rewards": [
           {
-            "itemId": "gold",
-            "count": 0.30000000000000004,
-            "label": "金币"
-          },
-          {
             "itemId": "stone",
             "count": 8,
             "label": "矿石"
@@ -567,11 +532,6 @@
         "label": "开采绒毛岩",
         "actionId": "miningFluffstone",
         "rewards": [
-          {
-            "itemId": "gold",
-            "count": 0.30000000000000004,
-            "label": "金币"
-          },
           {
             "itemId": "stone",
             "count": 8,
@@ -1891,13 +1851,6 @@
         "label": "抗打击训练",
         "actionId": "toughnessTraining",
         "rewards": [],
-        "dependencies": [
-          {
-            "itemId": "gold",
-            "count": 25,
-            "label": "金币"
-          }
-        ],
         "banToKitty": true
       },
       {
