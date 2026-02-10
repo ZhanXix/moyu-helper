@@ -1641,8 +1641,8 @@
     ]
   },
   {
-    "value": "提升自我",
-    "label": "提升自我",
+    "value": "特殊制造",
+    "label": "特殊制造",
     "items": [
       {
         "value": "craftLuckyCatStatue",
@@ -1676,8 +1676,7 @@
             "count": 5,
             "label": "神秘精华"
           }
-        ],
-        "banToKitty": true
+        ]
       },
       {
         "value": "brewMysticalCatnipPotion",
