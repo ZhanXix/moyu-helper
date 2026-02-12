@@ -43,7 +43,7 @@ export const DEFAULT_RESOURCES: ResourceCategory[] = [
   {
     name: '制作材料',
     items: {
-      paper: { threshold: 500, type: 'insufficient' },
+      paper: { threshold: 100, type: 'insufficient' },
       book: { threshold: 100, type: 'insufficient' },
       pencil: { threshold: 100, type: 'insufficient' },
       glassBottles: { threshold: 1000, type: 'insufficient' }, // 玻璃瓶
