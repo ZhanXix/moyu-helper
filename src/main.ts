@@ -19,6 +19,8 @@ import {
   battleGuard,
   tavernExpertManager,
   quickActions,
+  battleStatsManager,
+  enhanceManager,
 } from './features';
 import { appConfig } from './config/gm-settings';
 
@@ -41,13 +43,15 @@ const MENU_BUTTON_DEFS: MenuButtonDef[] = [
   { flag: 'QUICK_ALCHEMY_ENABLED', text: '⚗️ 快速炼金', onClick: () => alchemyPanel.show(), order: 5 },
   { flag: 'TAVERN_EXPERT_ENABLED', text: '🏠 酒馆管理', onClick: () => tavernExpertManager.openPanel(), order: 6 },
   { flag: 'QUICK_ACTIONS_ENABLED', text: '⚡ 快捷功能', onClick: () => quickActions.openModal(), order: 7 },
+  { flag: 'BATTLE_STATS_ENABLED', text: '📊 战斗统计', onClick: () => battleStatsManager.openModal(), order: 8 },
+  { flag: 'ENHANCE_ENABLED', text: '🔨 强化助手', onClick: () => enhanceManager.openModal(), order: 9 },
 ];
 
 /**
  * 批量读取功能开关，返回 flag → boolean 映射
  */
-async function loadFeatureFlags<K extends string>(keys: K[]): Promise<Record<K, boolean>> {
-  const values = await Promise.all(keys.map((k) => (appConfig as any)[k].get() as Promise<boolean>));
+async function loadFeatureFlags<K extends keyof typeof appConfig>(keys: K[]): Promise<Record<K, boolean>> {
+  const values = await Promise.all(keys.map((k) => appConfig[k].get() as Promise<boolean>));
   return Object.fromEntries(keys.map((k, i) => [k, values[i]])) as Record<K, boolean>;
 }
 
@@ -57,9 +61,11 @@ async function loadFeatureFlags<K extends string>(keys: K[]): Promise<Record<K, 
 async function getMenuButtons(): Promise<PanelButton[]> {
   const flags = await loadFeatureFlags(MENU_BUTTON_DEFS.map((d) => d.flag));
 
-  const buttons: PanelButton[] = MENU_BUTTON_DEFS
-    .filter((def) => flags[def.flag])
-    .map(({ text, onClick, order }) => ({ text, onClick, order }));
+  const buttons: PanelButton[] = MENU_BUTTON_DEFS.filter((def) => flags[def.flag]).map(({ text, onClick, order }) => ({
+    text,
+    onClick,
+    order,
+  }));
 
   // 资源监控按钮（由模块自身控制可见性）
   const resourceButton = resourceMonitor.getButton();
@@ -84,6 +90,8 @@ const ALL_FEATURE_FLAGS = [
   'AUTO_USE_BERRY_ENABLED',
   'QUICK_ACTIONS_ENABLED',
   'QUICK_ALCHEMY_ENABLED',
+  'BATTLE_STATS_ENABLED',
+  'ENHANCE_ENABLED',
 ] as const;
 
 /**

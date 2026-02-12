@@ -61,12 +61,6 @@ declare const GM: {
   };
 };
 
-// pako 压缩库类型声明
-declare const pako: {
-  inflate(data: Uint8Array, options?: { to?: string }): string | Uint8Array;
-  deflate(data: string | Uint8Array): Uint8Array;
-};
-
 // Vite 环境变量类型声明
 interface ImportMetaEnv {
   readonly DEV: boolean;
