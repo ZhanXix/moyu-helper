@@ -81,7 +81,7 @@ export const appConfig = {
       烤制浆果派: true,
       制作豪华猫粮: true,
       制作黑麦面包: true,
-      制作新手用鱼: true,
+      制作新手用鱼饵: true,
       制作普通鱼饵: true,
       制作浆果奶昔: true,
       制作铃语奶昔: true,
