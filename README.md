@@ -289,6 +289,10 @@ git branch -d dev
 
 # 删除远程分支
 git push origin --delete dev
+
+# 强制同步上游
+git reset --hard upstream/main
+git push --force origin pr
 ```
 
 ### 发布新版本
