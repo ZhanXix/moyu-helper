@@ -583,11 +583,6 @@
             "itemId": "fishSoup",
             "count": 1,
             "label": "鱼汤"
-          },
-          {
-            "itemId": "mysteryCan",
-            "count": 0.075,
-            "label": "神秘罐头"
           }
         ],
         "dependencies": [
@@ -604,6 +599,35 @@
         ]
       },
       {
+        "value": "makeMushroomStew",
+        "label": "炖蘑菇汤",
+        "actionId": "makeMushroomStew",
+        "rewards": [
+          {
+            "itemId": "mushroomStew",
+            "count": 1,
+            "label": "蘑菇炖汤"
+          }
+        ],
+        "dependencies": [
+          {
+            "itemId": "berry",
+            "count": 2,
+            "label": "浆果"
+          },
+          {
+            "itemId": "mushroom",
+            "count": 1,
+            "label": "蘑菇"
+          },
+          {
+            "itemId": "fish",
+            "count": 1,
+            "label": "鱼"
+          }
+        ]
+      },
+      {
         "value": "makeBerryPie",
         "label": "烤制浆果派",
         "actionId": "makeBerryPie",
@@ -612,11 +636,6 @@
             "itemId": "berryPie",
             "count": 1,
             "label": "浆果派"
-          },
-          {
-            "itemId": "mysteryCan",
-            "count": 0.05,
-            "label": "神秘罐头"
           }
         ],
         "dependencies": [
