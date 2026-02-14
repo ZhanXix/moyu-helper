@@ -34,7 +34,7 @@ export const appConfig = {
   // 资源监控配置
   RESOURCE_MONITOR_ENABLED: createGMConfigSetting('resource_monitor_enabled', false),
   AUTO_BUY_BASE_RESOURCES: createGMConfigSetting('auto_buy_base_resources', false),
-  RESOURCE_CRAFT_MULTIPLIER: createGMConfigSetting('resource_craft_multiplier', 1.5),
+  RESOURCE_CRAFT_MULTIPLIER: createGMConfigSetting('resource_craft_multiplier', 2),
   MONITORED_RESOURCES: createGMConfigSetting('monitored_resources', '{}'),
 
   // 日志级别配置
@@ -54,6 +54,11 @@ export const appConfig = {
     'auto_use_berry_food_type',
     'fish',
   ),
+
+  // 宠物喂食配置
+  KITTY_FEED_ENABLED: createGMConfigSetting('kitty_feed_enabled', false),
+  KITTY_FEED_MOOD_THRESHOLD: createGMConfigSetting('kitty_feed_mood_threshold', 192), // 心情阈值
+  KITTY_FEED_FOOD_TYPE: createGMConfigSetting<'luxuryCatFood' | 'catMint'>('kitty_feed_food_type', 'luxuryCatFood'),
 
   // 任务管理器配置
   QUEST_MANAGER_ENABLED: createGMConfigSetting('quest_manager_enabled', false),
@@ -113,5 +118,22 @@ export const appConfig = {
   KITTY_DEFAULT_TASKS: createGMConfigSetting<Record<number, string>>('kitty_default_tasks', {
     0: 'sericulture', // 养蚕
     1: 'pearlCultivation', // 培育珍珠
+  }),
+
+  // 强化助手配置
+  ENHANCE_CONFIG: createGMConfigSetting<{
+    item: string | null;
+    targetLevel: number;
+    interval: number;
+    batchCount: number;
+    protectMode: 'none' | 'item' | 'essence';
+    protectStartLevel: number;
+  }>('enhance_config', {
+    item: null,
+    targetLevel: 10,
+    interval: 3000,
+    batchCount: 1,
+    protectMode: 'essence',
+    protectStartLevel: 2,
   }),
 } as const;
