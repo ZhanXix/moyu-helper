@@ -282,16 +282,25 @@ yarn ex
 ### Git 操作
 ```bash
 # 合并开发分支
-git merge --squash dev
+git merge --squash pr
 
 # 删除本地分支
-git branch -d dev
+git branch -d pr
 
 # 删除远程分支
-git push origin --delete dev
+git push origin --delete pr
 
 # 强制同步上游
 git reset --hard upstream/main
+
+# 从上游分支创建一个新分支
+git checkout -b 你的新分支名 upstream/main
+
+
+# 解除对上游分支的跟踪关系
+git branch --unset-upstream
+
+# 强制推送当前分支到远程
 git push --force origin pr
 ```
 
