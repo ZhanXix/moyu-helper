@@ -4,35 +4,6 @@
     "label": "炼金",
     "items": [
       {
-        "value": "refinePureEssence",
-        "label": "提炼纯净精华",
-        "actionId": "refinePureEssence",
-        "rewards": [
-          {
-            "itemId": "pureEssence",
-            "count": 1,
-            "label": "纯净精华"
-          }
-        ],
-        "dependencies": [
-          {
-            "itemId": "starDust",
-            "count": 10,
-            "label": "星尘"
-          },
-          {
-            "itemId": "luminousMoss",
-            "count": 2,
-            "label": "夜光苔"
-          },
-          {
-            "itemId": "amberSap",
-            "count": 1,
-            "label": "琥珀汁"
-          }
-        ]
-      },
-      {
         "value": "refineMoonlightEssence",
         "label": "提炼月光精华",
         "actionId": "refineMoonlightEssence",
@@ -44,7 +15,7 @@
           },
           {
             "itemId": "catHairball",
-            "count": 2.4000000000000004,
+            "count": 3.6,
             "label": "猫毛球"
           }
         ],
@@ -82,6 +53,35 @@
             "itemId": "luminousMoss",
             "count": 3,
             "label": "夜光苔"
+          }
+        ]
+      },
+      {
+        "value": "refinePureEssence",
+        "label": "提炼纯净精华",
+        "actionId": "refinePureEssence",
+        "rewards": [
+          {
+            "itemId": "pureEssence",
+            "count": 1,
+            "label": "纯净精华"
+          }
+        ],
+        "dependencies": [
+          {
+            "itemId": "starDust",
+            "count": 10,
+            "label": "星尘"
+          },
+          {
+            "itemId": "luminousMoss",
+            "count": 2,
+            "label": "夜光苔"
+          },
+          {
+            "itemId": "amberSap",
+            "count": 1,
+            "label": "琥珀汁"
           }
         ]
       },
@@ -147,7 +147,7 @@
         "rewards": [
           {
             "itemId": "herb",
-            "count": 2,
+            "count": 3,
             "label": "草药"
           },
           {
@@ -164,12 +164,12 @@
         "rewards": [
           {
             "itemId": "mushroom",
-            "count": 0.8,
+            "count": 1.2000000000000002,
             "label": "蘑菇"
           },
           {
             "itemId": "herb",
-            "count": 1.6,
+            "count": 2.4000000000000004,
             "label": "草药"
           },
           {
@@ -196,7 +196,7 @@
         "rewards": [
           {
             "itemId": "honey",
-            "count": 3,
+            "count": 3.5,
             "label": "蜂蜜"
           }
         ]
@@ -208,7 +208,7 @@
         "rewards": [
           {
             "itemId": "bamboo",
-            "count": 3,
+            "count": 3.5,
             "label": "竹子"
           }
         ]
@@ -275,7 +275,7 @@
           {
             "itemId": "crystalCarp",
             "count": 0.06,
-            "label": "水晶鲤鱼"
+            "label": "水晶鲤"
           }
         ]
       },
@@ -301,7 +301,7 @@
           },
           {
             "itemId": "jadeTuna",
-            "count": 0.05,
+            "count": 0.07500000000000001,
             "label": "翡翠金枪鱼"
           }
         ]
@@ -325,6 +325,16 @@
             "itemId": "rareCatfish",
             "count": 0.75,
             "label": "稀有猫鱼"
+          },
+          {
+            "itemId": "mysticalKoi",
+            "count": 0.3,
+            "label": "神秘锦鲤"
+          },
+          {
+            "itemId": "moonlightShrimp",
+            "count": 0.75,
+            "label": "月光虾"
           }
         ],
         "dependencies": [
@@ -348,7 +358,7 @@
         "rewards": [
           {
             "itemId": "chickenEgg",
-            "count": 2,
+            "count": 3,
             "label": "鸡蛋"
           },
           {
@@ -365,12 +375,12 @@
         "rewards": [
           {
             "itemId": "milk",
-            "count": 2,
+            "count": 3,
             "label": "牛奶"
           },
           {
             "itemId": "animalManure",
-            "count": 0.24,
+            "count": 0.3,
             "label": "动物粪肥"
           }
         ]
@@ -382,12 +392,12 @@
         "rewards": [
           {
             "itemId": "wool",
-            "count": 2,
+            "count": 3,
             "label": "羊毛"
           },
           {
             "itemId": "animalManure",
-            "count": 0.24,
+            "count": 0.3,
             "label": "动物粪肥"
           }
         ]
@@ -399,7 +409,7 @@
         "rewards": [
           {
             "itemId": "silk",
-            "count": 2,
+            "count": 3,
             "label": "蚕丝"
           }
         ]
@@ -451,17 +461,17 @@
         "rewards": [
           {
             "itemId": "stone",
-            "count": 1,
+            "count": 1.5,
             "label": "矿石"
           },
           {
             "itemId": "iron",
-            "count": 0.5,
+            "count": 0.75,
             "label": "铁"
           },
           {
             "itemId": "coal",
-            "count": 0.5,
+            "count": 0.75,
             "label": "煤炭"
           }
         ]
@@ -473,17 +483,17 @@
         "rewards": [
           {
             "itemId": "stone",
-            "count": 10,
+            "count": 12.5,
             "label": "矿石"
           },
           {
             "itemId": "iron",
-            "count": 8,
+            "count": 10,
             "label": "铁"
           },
           {
             "itemId": "coal",
-            "count": 8,
+            "count": 10,
             "label": "煤炭"
           }
         ]
@@ -495,17 +505,17 @@
         "rewards": [
           {
             "itemId": "iron",
-            "count": 6,
+            "count": 8,
             "label": "铁"
           },
           {
             "itemId": "silverOre",
-            "count": 3.2,
+            "count": 4,
             "label": "银矿"
           },
           {
             "itemId": "mithrilOre",
-            "count": 2,
+            "count": 2.25,
             "label": "秘银矿"
           }
         ]
@@ -517,12 +527,12 @@
         "rewards": [
           {
             "itemId": "stone",
-            "count": 8,
+            "count": 9,
             "label": "矿石"
           },
           {
             "itemId": "fishscaleMineral",
-            "count": 0.8,
+            "count": 1.6,
             "label": "鱼鳞矿"
           }
         ]
@@ -534,13 +544,81 @@
         "rewards": [
           {
             "itemId": "stone",
-            "count": 8,
+            "count": 9,
             "label": "矿石"
           },
           {
             "itemId": "fluffstone",
-            "count": 0.8,
+            "count": 1.6,
             "label": "绒毛岩"
+          }
+        ]
+      },
+      {
+        "value": "miningClawmarkOre",
+        "label": "开采爪痕矿",
+        "actionId": "miningClawmarkOre",
+        "rewards": [
+          {
+            "itemId": "stone",
+            "count": 9,
+            "label": "矿石"
+          },
+          {
+            "itemId": "clawmarkOre",
+            "count": 1.6,
+            "label": "爪痕矿"
+          }
+        ]
+      },
+      {
+        "value": "miningManacrystal",
+        "label": "开采魔晶石",
+        "actionId": "miningManacrystal",
+        "rewards": [
+          {
+            "itemId": "stone",
+            "count": 9,
+            "label": "矿石"
+          },
+          {
+            "itemId": "manacrystal",
+            "count": 1.6,
+            "label": "魔晶石"
+          }
+        ]
+      },
+      {
+        "value": "miningCatEyeStone",
+        "label": "开采猫眼石",
+        "actionId": "miningCatEyeStone",
+        "rewards": [
+          {
+            "itemId": "stone",
+            "count": 9,
+            "label": "矿石"
+          },
+          {
+            "itemId": "catEyeStone",
+            "count": 1.6,
+            "label": "猫眼石"
+          }
+        ]
+      },
+      {
+        "value": "miningAmberEyeStone",
+        "label": "开采琥珀瞳石",
+        "actionId": "miningAmberEyeStone",
+        "rewards": [
+          {
+            "itemId": "stone",
+            "count": 9,
+            "label": "矿石"
+          },
+          {
+            "itemId": "amberEyeStone",
+            "count": 1.6,
+            "label": "琥珀瞳石"
           }
         ]
       }
@@ -571,6 +649,30 @@
             "itemId": "herb",
             "count": 1,
             "label": "草药"
+          }
+        ]
+      },
+      {
+        "value": "makeWildFruitMix",
+        "label": "制作野果拼盘",
+        "actionId": "makeWildFruitMix",
+        "rewards": [
+          {
+            "itemId": "wildFruitMix",
+            "count": 1,
+            "label": "野果拼盘"
+          }
+        ],
+        "dependencies": [
+          {
+            "itemId": "berry",
+            "count": 2,
+            "label": "浆果"
+          },
+          {
+            "itemId": "mushroom",
+            "count": 1,
+            "label": "蘑菇"
           }
         ]
       },
@@ -682,6 +784,35 @@
             "itemId": "rareCatfish",
             "count": 1,
             "label": "稀有猫鱼"
+          }
+        ]
+      },
+      {
+        "value": "makeSashimiPlatter",
+        "label": "制作鲜鱼刺身拼盘",
+        "actionId": "makeSashimiPlatter",
+        "rewards": [
+          {
+            "itemId": "sashimiPlatter",
+            "count": 1,
+            "label": "鲜鱼刺身拼盘"
+          }
+        ],
+        "dependencies": [
+          {
+            "itemId": "tuna",
+            "count": 1,
+            "label": "金枪鱼"
+          },
+          {
+            "itemId": "rareCatfish",
+            "count": 1,
+            "label": "稀有猫鱼"
+          },
+          {
+            "itemId": "mysticalKoi",
+            "count": 1,
+            "label": "神秘锦鲤"
           }
         ]
       },
@@ -1003,9 +1134,9 @@
             "label": "蜂蜜"
           },
           {
-            "itemId": "berry",
+            "itemId": "rye",
             "count": 4,
-            "label": "浆果"
+            "label": "黑麦"
           },
           {
             "itemId": "nutrientEssence",
@@ -1071,9 +1202,9 @@
             "label": "蜂蜜"
           },
           {
-            "itemId": "berry",
+            "itemId": "rye",
             "count": 4,
-            "label": "浆果"
+            "label": "黑麦"
           },
           {
             "itemId": "nutrientEssence",
@@ -1143,7 +1274,7 @@
       },
       {
         "value": "makeIronCan",
-        "label": "制作铁罐",
+        "label": "制作铁罐头",
         "actionId": "makeIronCan",
         "rewards": [
           {
@@ -1172,18 +1303,6 @@
           }
         ],
         "dependencies": [
-          {
-            "itemId": "bamboo",
-            "count": 6,
-            "label": "竹子"
-          }
-        ]
-      },
-      {
-        "value": "makeBook",
-        "label": "封装书",
-        "actionId": "makeBook",
-        "rewards": [
           {
             "itemId": "ancientCatBowl",
             "count": 1,
@@ -1232,6 +1351,11 @@
             "itemId": "bamboo",
             "count": 20,
             "label": "竹子"
+          },
+          {
+            "itemId": "whiskerFeather",
+            "count": 2,
+            "label": "胡须羽毛"
           }
         ]
       },
@@ -1675,7 +1799,7 @@
           },
           {
             "itemId": "catPawCoin",
-            "count": 0.3,
+            "count": 0.8999999999999999,
             "label": "猫爪古钱币"
           }
         ],
@@ -1698,6 +1822,35 @@
         ]
       },
       {
+        "value": "createCatTalisman",
+        "label": "制作猫咪护符",
+        "actionId": "createCatTalisman",
+        "rewards": [
+          {
+            "itemId": "luckyCatCharm",
+            "count": 1,
+            "label": "招财猫护符"
+          },
+          {
+            "itemId": "magicScroll",
+            "count": 0.44999999999999996,
+            "label": "魔法卷轴"
+          }
+        ],
+        "dependencies": [
+          {
+            "itemId": "catScroll",
+            "count": 1,
+            "label": "猫之卷轴"
+          },
+          {
+            "itemId": "catHairball",
+            "count": 10,
+            "label": "猫毛球"
+          }
+        ]
+      },
+      {
         "value": "brewMysticalCatnipPotion",
         "label": "炼制猫薄荷药剂",
         "actionId": "brewMysticalCatnipPotion",
@@ -1709,7 +1862,7 @@
           },
           {
             "itemId": "moonlightBell",
-            "count": 0.45,
+            "count": 0.44999999999999996,
             "label": "月光铃铛"
           }
         ],
@@ -1738,14 +1891,14 @@
           },
           {
             "itemId": "moonlightBell",
-            "count": 0.45,
+            "count": 0.44999999999999996,
             "label": "月光铃铛"
           }
         ],
         "dependencies": [
           {
             "itemId": "catAntiqueShard",
-            "count": 10,
+            "count": 5,
             "label": "猫咪文物碎片"
           },
           {
@@ -1773,17 +1926,17 @@
           },
           {
             "itemId": "catHairball",
-            "count": 4,
+            "count": 5,
             "label": "猫毛球"
           },
           {
             "itemId": "berry",
-            "count": 3.2,
+            "count": 4,
             "label": "浆果"
           },
           {
             "itemId": "honey",
-            "count": 1.7999999999999998,
+            "count": 1.5,
             "label": "蜂蜜"
           }
         ]
@@ -1795,12 +1948,12 @@
         "rewards": [
           {
             "itemId": "catAntiqueShard",
-            "count": 2,
+            "count": 3.5,
             "label": "猫咪文物碎片"
           },
           {
             "itemId": "treasureMap",
-            "count": 0.8,
+            "count": 2,
             "label": "藏宝图"
           },
           {
@@ -1815,7 +1968,7 @@
           },
           {
             "itemId": "catPawCoin",
-            "count": 0.01,
+            "count": 0.02,
             "label": "猫爪古钱币"
           },
           {
@@ -1839,11 +1992,6 @@
             "itemId": "mysticalEssence",
             "count": 1,
             "label": "神秘精华"
-          },
-          {
-            "itemId": "dreamFeatherBag",
-            "count": 0.1,
-            "label": "梦羽袋"
           },
           {
             "itemId": "luckyCatCharm",

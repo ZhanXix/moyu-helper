@@ -5,70 +5,35 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 常量配置
-const FILTERED_RESOURCES = new Set(['berry', 'fish', 'wood', 'stone', 'bamboo', 'coal', '__satiety']);
-const EXCLUDED_CATEGORIES = ['基础资源', '其他', '种子'];
-const REQUIRED_ACTIONS = [
-  'miningFishscaleMineral',
-  'cutBamboo',
-  'pearlCultivation',
-  'refinePureEssence',
-  'compileBookOfWorkSkillTreePoint',
-  'compileBookOfBattleSkillTreePoint',
-  'refineGenesisEssence',
-  'craftLuckyCatStatue',
+// 忽略的物品（需求依赖）- 使用物品中文名
+const IGNORED_DEPENDENCIES = new Set(['金币', '饱食度']);
+
+// 忽略的物品（产出）- 使用物品中文名
+const IGNORED_REWARDS = new Set(['金币', '幸运猫盒', '神秘罐头', '梦羽袋']);
+
+// 指定要生成的配方（使用 action 中文名）
+const TARGET_ACTION_NAMES = [
+  { key: '炼金', actions: ['提炼月光精华', '提炼灵质', '提炼纯净精华', '提炼造物精华'], },
+  { key: '采集', actions: ['采草药', '采集花草', '采蜂蜜', '砍竹子', '收集云絮', '收集彩虹碎片'] },
+  { key: '钓鱼', actions: ['钓鱼', '深海捕鱼', '神秘钓鱼'] },
+  { key: '养殖', actions: ['照料小鸡仔', '照料奶牛', '照料绵羊', '养蚕', '培育珍珠'] },
+  { key: '挖掘', actions: ['挖矿', '矿井采矿', '深度开采', '开采鱼鳞矿', '开采绒毛岩', '开采爪痕矿', '开采魔晶石', '开采猫眼石', '开采琥珀瞳石'] },
+  {
+    key: '烹饪', actions: [
+      '制作野草沙拉', '制作野果拼盘', '熬制鱼汤', '炖蘑菇汤',
+      '烤制浆果派', '制作豪华猫粮', '制作鲜鱼刺身拼盘', '制作蛋奶布丁', '制作黑麦面包', '制作软软棉花糖',
+      '酿造浆果酒', '酿造晨露精酿', '酿造铃语精酿',
+      '制作浆果奶昔', '制作铃语奶昔', '制作葡萄浆果奶昔', '制作葡萄铃语奶昔',
+      '制作知识助力蛋挞', '制作知识增幅蛋挞', '制作探索助力蛋挞', '制作探索增幅蛋挞'
+    ]
+  },
+  { key: '制造', actions: ['制造玻璃瓶', '制作铁罐头', '制作自动喂食器', '制作猫抓板', '造纸', '封装书', '制作碳笔'] },
+  { key: '锻造', actions: ['熔炼钢', '熔炼银', '熔炼秘银', '熔炼鱼鳞合金', '熔炼暗影精铁', '熔炼星辰合金'] },
+  { key: '缝制', actions: ['缝制羊绒布料', '缝制丝绸布料', '分离绒毛', '缝制绒毛布料', '缝制毛绒玩具', '制作舒适猫窝'] },
+  { key: '特殊制造', actions: ['制作幸运猫神像', '制作猫咪护符', '炼制猫薄荷药剂', '拼接猫咪文物'] },
+  { key: '探索', actions: ['探索', '考古挖掘', '寻宝'] },
+  { key: '提升自我', actions: ['读书', '抗打击训练', '编写生活专精手册', '编写战斗专精手册'] }
 ];
-const COLLECTION_ACTIONS = ['reading', 'swim', 'charcoalMaking', 'pickRainbowShard'];
-const EXCLUDED_ACTIONS = new Set(['farming', 'farmingRye', 'windBellHerb', 'dawnBlossom']);
-const SPECIAL_CATEGORY_MAPPING = { craftLuckyCatStatue: '特殊制造', brewMysticalCatnipPotion: '特殊制造' };
-
-// 一级分类定义
-const PRIMARY_CATEGORIES = [
-  { key: '烹饪', tags: ['cooking'], secondaries: ['通用', '美食', '鱼饵', '酿造', '饮品', '罐头', '甜点'] },
-  { key: '养殖', tags: ['farmingAnimal'], secondaries: ['通用'] },
-  {
-    key: '缝制',
-    tags: ['sewing'],
-    secondaries: ['基础缝纫', '羊毛制品', '工作服', '饰品', '丝制品', '特殊物品', '绒毛制品'],
-  },
-  {
-    key: '制造',
-    tags: ['manufacturing', 'forging'],
-    secondaries: ['工具', '通用', '武器', '法杖', '饰品', '道具', '渔具', '猫舍家具', '文具'],
-  },
-  { key: '探索', tags: ['exploring'] },
-  {
-    key: '自我提升',
-    tags: ['dexterity', 'stamina', 'strength', 'intelligence', 'attacking', 'defencing'],
-    secondaries: ['锻炼', '实战', '室内训练', '学习'],
-  },
-  {
-    key: '炼金',
-    tags: ['mysterious'],
-    secondaries: ['猫咪自学点金术', '基础点金术', '精华点金术', '提炼', '制药', '净化'],
-  },
-  { key: '采集', tags: ['gathering'], secondaries: ['种植', '野外', '农田', '海边', '天空'] },
-  { key: '钓鱼', tags: ['fishing'], secondaries: ['近海'] },
-  { key: '挖掘', tags: ['mining'], secondaries: ['矿洞', '神秘矿洞'] },
-
-  { key: '种植', tags: ['planting'], secondaries: ['森林'] },
-  { key: '特殊制造', tags: ['knowledge'] },
-];
-
-// 构建分类映射
-const CATEGORY_MAPS = (() => {
-  const secondary = {};
-  const tag = {};
-  const order = {};
-
-  PRIMARY_CATEGORIES.forEach(({ key, tags, secondaries }, index) => {
-    tags.forEach((t) => (tag[t] = key));
-    secondaries?.forEach((s) => (secondary[s] = key));
-    order[key] = index;
-  });
-
-  return { secondary, tag, order };
-})();
 
 // 读取并解析源数据
 function loadRawData() {
@@ -91,148 +56,60 @@ function loadItemNames() {
   const items = JSON.parse(content);
 
   const itemNames = {};
+  const nameToId = {};
   Object.entries(items).forEach(([itemId, item]) => {
     if (item.name) {
       itemNames[itemId] = item.name;
+      nameToId[item.name] = itemId;
     }
   });
 
-  return itemNames;
+  return { itemNames, nameToId };
 }
 
-// 从 defaults.ts 提取目标物品 ID
-function extractTargetItemIds() {
-  const defaultsFile = path.join(__dirname, '../src/config/defaults.ts');
-  const content = fs.readFileSync(defaultsFile, 'utf-8');
-  const targetIds = new Set();
-
-  const categoryRegex = /\{\s*name:\s*['"]([^'"]+)['"],\s*items:\s*\{/g;
-  let match;
-
-  while ((match = categoryRegex.exec(content)) !== null) {
-    if (EXCLUDED_CATEGORIES.includes(match[1])) continue;
-
-    const itemsBlock = extractBracketContent(content, match.index + match[0].length);
-    const itemIds = itemsBlock.matchAll(/([a-zA-Z0-9_]+):\s*\{/g);
-
-    for (const [, itemId] of itemIds) {
-      targetIds.add(itemId);
-    }
-  }
-
-  return targetIds;
-}
-
-// 提取大括号内容
-function extractBracketContent(text, startPos) {
-  let braceCount = 1;
-  let endPos = startPos;
-
-  while (braceCount > 0 && endPos < text.length) {
-    if (text[endPos] === '{') braceCount++;
-    if (text[endPos] === '}') braceCount--;
-    endPos++;
-  }
-
-  return text.substring(startPos, endPos - 1);
-}
-
-// 计算 action 效率
-function calculateEfficiency(action, reward) {
-  const baseCount = reward.range?.min || reward.count || 1;
-  const percent = reward.percent || 1;
-  const baseDuration = action.baseDuration || 1000;
-  return (percent * baseCount) / (baseDuration / 1000);
-}
-
-// 提取非基础资源依赖
-function extractDependencies(action) {
-  return action.requirement?.resource?.filter((req) => !FILTERED_RESOURCES.has(req.id)) || [];
-}
-
-// 构建物品生产索引
-function buildItemProducerIndex(rawData) {
-  const index = {};
-  Object.entries(rawData).forEach(([actionId, action]) => {
-    if (EXCLUDED_ACTIONS.has(actionId)) return;
-    action.rewards?.forEach((reward) => {
-      if (!index[reward.id]) index[reward.id] = [];
-      index[reward.id].push(actionId);
-    });
-  });
-  return index;
-}
-
-// 找到生产目标物品的最优 action
-function findOptimalActions(rawData, targetItemIds, producerIndex) {
-  const optimalActions = new Set();
-
-  targetItemIds.forEach((itemId) => {
-    const producers = producerIndex[itemId]?.map((actionId) => {
-      const action = rawData[actionId];
-      const reward = action.rewards.find((r) => r.id === itemId);
-      return {
-        actionId,
-        depCount: extractDependencies(action).length,
-        efficiency: calculateEfficiency(action, reward),
-      };
-    });
-
-    if (producers?.length) {
-      producers.sort((a, b) => a.depCount - b.depCount || b.efficiency - a.efficiency);
-      optimalActions.add(producers[0].actionId);
-    }
-  });
-
-  return optimalActions;
-}
-
-// 递归收集所有依赖的 action
-function collectDependentActions(rawData, actionIds, producerIndex) {
-  const visited = new Set();
-  const queue = Array.from(actionIds);
-
-  while (queue.length > 0) {
-    const actionId = queue.shift();
-    if (visited.has(actionId)) continue;
-    visited.add(actionId);
-
-    const dependencies = extractDependencies(rawData[actionId]);
-    dependencies.forEach((req) => {
-      producerIndex[req.id]?.forEach((depActionId) => {
-        if (!visited.has(depActionId) && !EXCLUDED_ACTIONS.has(depActionId)) {
-          queue.push(depActionId);
+// 从配置提取目标 action ID（按配置顺序）
+function extractTargetActionIds(rawData) {
+  const result = [];
+  for (const { key, actions } of TARGET_ACTION_NAMES) {
+    const actionIds = [];
+    for (const name of actions) {
+      // 直接从 rawData 查找 action
+      for (const [actionId, action] of Object.entries(rawData)) {
+        if (action.name === name) {
+          actionIds.push(actionId);
+          break;
         }
-      });
-    });
+      }
+    }
+    result.push({ key, actionIds });
   }
 
-  return visited;
-}
+  const totalCount = result.reduce((sum, { actionIds }) => sum + actionIds.length, 0);
+  if (totalCount === 0) {
+    console.error('没有找到任何匹配的 action！');
+  }
 
-// 获取 action 分类
-function getActionCategory(actionId, action) {
-  return (
-    SPECIAL_CATEGORY_MAPPING[actionId] ||
-    CATEGORY_MAPS.secondary[action.secondaryClassification] ||
-    action.secondaryClassification ||
-    CATEGORY_MAPS.tag[action.characterImprove?.[0]?.status] ||
-    '其他'
-  );
+  return result;
 }
 
 // 转换 action 为目标格式
-function transformAction(actionId, action) {
-  const rewards =
-    action.rewards?.map((r) => ({
-      itemId: r.id,
-      count: (r.range?.min || r.count || 1) * (r.percent || 1),
-    })) || [];
+function transformAction(actionId, action, nameToId) {
+  const ignoredRewardIds = new Set(Array.from(IGNORED_REWARDS).map((name) => nameToId[name]).filter(Boolean));
+  const ignoredDepIds = new Set(Array.from(IGNORED_DEPENDENCIES).map((name) => nameToId[name]).filter(Boolean));
 
-  const dependencies = extractDependencies(action).map((req) => ({
+  const rewards =
+    action.rewards?.filter((r) => !ignoredRewardIds.has(r.id)).map((r) => {
+      const baseCount = r.range ? (r.range.min + r.range.max) / 2 : (r.count || 1);
+      return {
+        itemId: r.id,
+        count: baseCount * (r.percent || 1),
+      };
+    }) || [];
+
+  const dependencies = action.requirement?.resource?.filter((req) => !ignoredDepIds.has(req.id)).map((req) => ({
     itemId: req.id,
     count: req.count,
-  }));
+  })) || [];
 
   return {
     id: actionId,
@@ -240,7 +117,6 @@ function transformAction(actionId, action) {
     actionId,
     rewards,
     dependencies,
-    category: getActionCategory(actionId, action),
     banToKitty: action.banToKitty || false,
   };
 }
@@ -258,62 +134,44 @@ function toTreeItem(action) {
 }
 
 // 生成最终数据结构
-function generateFinalData(rawData, normalActionIds, collectionActionIds, itemNames) {
-  const actions = Array.from(normalActionIds)
-    .filter((id) => rawData[id] && !EXCLUDED_ACTIONS.has(id))
-    .map((id) => transformAction(id, rawData[id]));
+function generateFinalData(rawData, categories, itemNames) {
+  const result = [];
 
-  // 按分类分组
-  const grouped = {};
-  actions.forEach((action) => {
-    (grouped[action.category] ||= []).push(action);
-  });
+  for (const { key, actionIds } of categories) {
+    const actions = actionIds
+      .filter((id) => rawData[id])
+      .map((id) => transformAction(id, rawData[id], itemNames.nameToId));
 
-  // 按 PRIMARY_CATEGORIES 顺序排序并转换
-  const categories = Object.entries(grouped)
-    .sort(([a], [b]) => {
-      const orderA = CATEGORY_MAPS.order[a] ?? 999;
-      const orderB = CATEGORY_MAPS.order[b] ?? 999;
-      return orderA - orderB || a.localeCompare(b, 'zh-CN');
-    })
-    .map(([category, items]) => ({
-      value: category,
-      label: category,
-      items: items.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN')).map(toTreeItem),
-    }));
-
-  // 添加收藏分类
-  if (collectionActionIds.length) {
-    categories.unshift({
-      value: 'collection',
-      label: '收藏',
-      items: collectionActionIds
-        .filter((id) => rawData[id])
-        .map((id) => toTreeItem(transformAction(id, rawData[id]), itemNames)),
-    });
+    if (actions.length > 0) {
+      result.push({
+        value: key,
+        label: key,
+        items: actions.map(toTreeItem),
+      });
+    }
   }
 
-  // 为所有 rewards 添加 label
-  categories.forEach((category) => {
+  // 为所有 rewards 和 dependencies 添加 label
+  result.forEach((category) => {
     category.items.forEach((item) => {
       if (item.rewards) {
         item.rewards.forEach((reward) => {
-          if (itemNames[reward.itemId]) {
-            reward.label = itemNames[reward.itemId];
+          if (itemNames.itemNames[reward.itemId]) {
+            reward.label = itemNames.itemNames[reward.itemId];
           }
         });
       }
       if (item.dependencies) {
         item.dependencies.forEach((dep) => {
-          if (itemNames[dep.itemId]) {
-            dep.label = itemNames[dep.itemId];
+          if (itemNames.itemNames[dep.itemId]) {
+            dep.label = itemNames.itemNames[dep.itemId];
           }
         });
       }
     });
   });
 
-  return categories;
+  return result;
 }
 
 // 生成并写入文件
@@ -330,22 +188,18 @@ function writeOutputFile(data, targetItemCount) {
   console.log(`转换完成！共处理 ${totalItems} 条数据，分为 ${data.length} 个分类`);
   console.log(`目标物品数：${targetItemCount}`);
   console.log(`输出文件：${outputFile}`);
-  console.log('提示：已按最少依赖优先，效率次之的原则选择 action');
 }
 
 // 主流程
 function main() {
   const rawData = loadRawData();
-  const itemNames = loadItemNames();
-  const targetItemIds = extractTargetItemIds();
-  const producerIndex = buildItemProducerIndex(rawData);
-  const optimalActions = findOptimalActions(rawData, targetItemIds, producerIndex);
-  const allActions = collectDependentActions(rawData, optimalActions, producerIndex);
+  const { itemNames, nameToId } = loadItemNames();
+  const categories = extractTargetActionIds(rawData);
 
-  REQUIRED_ACTIONS.forEach((id) => !EXCLUDED_ACTIONS.has(id) && allActions.add(id));
+  const finalData = generateFinalData(rawData, categories, { itemNames, nameToId });
 
-  const finalData = generateFinalData(rawData, allActions, COLLECTION_ACTIONS, itemNames);
-  writeOutputFile(finalData, targetItemIds.size);
+  const totalCount = categories.reduce((sum, { actionIds }) => sum + actionIds.length, 0);
+  writeOutputFile(finalData, totalCount);
 }
 
 main();

@@ -88,8 +88,8 @@ export default defineConfig({
         author: 'NanGuaChui & ZhanXix',
         match: ['https://www.moyu-idle.com/*', 'https://moyu-idle.com/*'],
         'run-at': 'document-start',
-        updateURL: 'https://github.com/ZhanXix/moyu-helper/releases/latest/download/moyu-helper-xz-personal.user.js',
-        downloadURL: 'https://github.com/ZhanXix/moyu-helper/releases/latest/download/moyu-helper-xz-personal.user.js',
+        updateURL: 'https://github.com/ZhanXix/moyu-helper/releases/latest/download/moyu-helper-xz-version.user.js',
+        downloadURL: 'https://github.com/ZhanXix/moyu-helper/releases/latest/download/moyu-helper-xz-version.user.js',
         grant: ['unsafeWindow', 'GM.getValue', 'GM.setValue', 'GM_addStyle'],
       },
       generate: ({ userscript, mode }) => {
